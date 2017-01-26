@@ -1,0 +1,11 @@
+ID,age,workclass,fnlwgt,education,education-num,marital-status,occupation,relationship,race,sex,capital-gain,capital-loss,hours-per-week,native-country,income
+12624.0,30.0, Private,239528.0, 11th,, Married-civ-spouse, Handlers-cleaners, Unmarried, White,,239.0,,34.0,WGKmqNyZjchnkWLkhAAZ,
+3110.0,50.0, Self-emp-inc,163474.0, Doctorate,13.0, Divorced,, Husband, White,,289.0,38.0,25.0,CCeQSEcdhKzltGKGJlFb, <=50K
+17040.0,53.0, Local-gov,, HS-grad,9.0, Married-civ-spouse, Transport-moving,, White, Male,419.0,,35.0,LeqwPsCDueANsDbVAJXe, >50K
+,49.0,,,,10.0, Married-civ-spouse, Sales, Husband, White, Male,337.0,51.0,9.0,tlYhObxDSmHEFiRAZRKG,
+,39.0,,154609.0, Some-college,13.0,,,, Black, Male,809.0,,35.0,rIBkboHcQcpzDaBZShop,
+5299.0,27.0, Local-gov,237466.0, 11th,11.0, Divorced,, Husband, White,,15054.0,19.0,35.0,VLTTFcJLwJKbtTaKRixy, <=50K
+29621.0,45.0,,75421.0,,13.0, Married-civ-spouse, Tech-support, Unmarried, White, Female,,4.0,35.0,OjNDhvLKzCjhAGKJBfBv, <=50K
+,21.0, Private,231863.0, Bachelors,9.0,, Other-service, Husband, White,,,,60.0,OangImPTDbiombASNKqJ,
+10716.0,20.0, Private,80266.0, HS-grad,14.0, Never-married,, Not-in-family, White, Male,40.0,31.0,43.0,pJyFLWuZkgXhmNOQTRYT, <=50K
+10938.0,31.0,,160355.0,,9.0, Married-civ-spouse, Sales, Husband, White, Male,174.0,15.0,40.0,AtOrfZbJSxyYKbturAyG, >50K
