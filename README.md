@@ -1,20 +1,12 @@
 
-# Usage of datafaker
+# Usage of DataSynthesizer
 
-> The demo.ipynb is a jupyter notebook for this file.
+> demo.ipynb is a Jupyter Notebook for this ReadMe.
 
-### Import two classes from datafaker
+Given a private dataset, DataSynthesizer can be used to generate a synthetic dataset for release to public. It infers the data types and domains for attributes in dataset. Histograms are used to model the distribution of each attribute. Synthetic dataset is sampled from the histograms or uniformly from the inferred domains.
 
-1. DatasetDestriber can infer the domain of each column in dataset.
-2. SyntheticDataGenerator can generate synthetic data according to the dataset description.
-
-
-```python
-from datafaker import DatasetDestriber, SyntheticDataGenerator
-```
-
-### Data types
- The datafaker currently supports 4 basic data types.
+## Data types
+ The DataSynthesizer currently supports 4 basic data types.
 
 | data type | example                   |
 | --------- | ------------------------- |
@@ -23,13 +15,11 @@ from datafaker import DatasetDestriber, SyntheticDataGenerator
 | string    | first name, gender, ...   |
 | datetime  | birthday, event time, ... |
 
-The data types can be part of the input. If not, they will be inferred from the dataset.
+## Data description format
 
-### Data description format
-
-The domain of data is described as follows.
+The domain of an attribute is as follows.
 - The "catagorical" indicates attributes with particular values, e.g., "gender", "nationality".
-- Most domains are modeled by a histogram, except noncategorical "string".
+- Domains are modeled by histograms, except noncategorical "string".
 
 | data type | categorical | min              | max              | values              | probabilities       | values count       | missing rate |
 | --------- | ----------- | ---------------- | ---------------- | ------------------- | ------------------- | ------------------ | ------------ |
@@ -39,10 +29,16 @@ The domain of data is described as follows.
 | string    | False       | min in length    | max in length    | 0                   | 0                   | 0                  | missing rate |
 | datetime  | True/False  | min in timestamp | max in timestamp | x-axis in histogram | y-axis in histogram | #bins in histogram | missing rate |
 
-##### The directories for input and output files
+##### Step 0: Import DataDestriber and DataGenerator from DataSynthesizer
 
 
 ```python
+from DataSynthesizer import DataDestriber, DataGenerator
+```
+
+
+```python
+# Directories of input and output files
 input_dataset_file = './raw_data/AdultIncomeData/adult.csv'
 dataset_description_file = './output/description/AdultIncomeData_description.csv'
 synthetic_data_file = './output/synthetic_data/AdultIncomeData_synthetic.csv'
@@ -52,23 +48,30 @@ synthetic_data_file = './output/synthetic_data/AdultIncomeData_synthetic.csv'
 
 
 ```python
-describer = DatasetDestriber()
+describer = DataDestriber()
 ```
 
-##### Step 2: Generate dataset description
+##### Step 1: Generate dataset description
 
-- description1 is inferred by code.
-- description2 also contains customization on datatypes and category indicators from the user.
-  - "education-num" is of datat type "float".
-  - "native-country" is not categrocial.
-  - "age" is categorical.
+The dataset description is inferred by code, which also allows users to customize the data types and categorical indicators, e.g.,
+- "education-num" is of type "float".
+- "native-country" is not categrocial.
+- "age" is categorical.
 
 
 ```python
-description1 = describer.get_dataset_description(file_name=input_dataset_file)
-description2 = describer.get_dataset_description(file_name=input_dataset_file,
-                                                 column_to_datatype_dict={'education-num': 'float'},
-                                                 column_to_categorical_dict={'native-country':False,'age':True})
+describer.describe_dataset(file_name=input_dataset_file,
+                           column_to_datatype_dict={'education-num': 'float'},
+                           column_to_categorical_dict={'native-country':False,'age':True})
+```
+
+##### Step 2: Get the dataset description
+
+The dataset description is
+
+
+```python
+describer.dataset_description
 ```
 
 ##### Step 3: save the dataset description
@@ -80,35 +83,38 @@ describer.dataset_description.to_csv(dataset_description_file)
 
 ### Generate synthetic data
 
-##### Step 1: Initialize a SyntheticDataGenerator.
+##### Step 4: Initialize a SyntheticDataGenerator.
 
 
 ```python
-generator = SyntheticDataGenerator()
+generator = DataGenerator()
 ```
 
-##### Step 2: Generate 10 rows in sysnthetic dataset
+##### Step 5: Generate sysnthetic dataset
 
-The values are sampled from the histograms in dataset description file.
+By default, the data is sampled from the histograms in dataset description. But users can let some columns to sample uniformly in doamin of [min, max].
+
+> generator.generate_uniform_random_dataset(dataset_description_file, N=10) # will generate a totoally random dataset.
+
+Here the example is to generate 10 rows in synthetic datset, where "age" and "education" are sampled uniformly.
 
 
 ```python
-synthetic_dataset = generator.get_synthetic_data(dataset_description_file, N=10)
+generator.generate_synthetic_dataset(dataset_description_file, N=10, uniform_columns={'age', 'education'})
 ```
 
-##### Step 3: Random missing
+##### Step 6: Random missing
 
-Random missing proportional to missing rates in dataset description.
+Remove values of a given column randomly, e.g., removing 60% of age values.
 
 
 ```python
-generator.random_missing_on_dataset_as_description()
+generator.random_missing_on_column('age', 0.6)
 ```
 
 ##### Step 4: Save the synthetic dataset
 
 
 ```python
-synthetic_dataset = generator.synthetic_dataset
-synthetic_dataset.to_csv(synthetic_data_file)
+generator.synthetic_dataset.to_csv(synthetic_data_file, index=False)
 ```
