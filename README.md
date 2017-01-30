@@ -112,7 +112,7 @@ Remove values of a given column randomly, e.g., removing 60% of age values.
 generator.random_missing_on_column('age', 0.6)
 ```
 
-##### Step 4: Save the synthetic dataset
+##### Step 7: Save the synthetic dataset
 
 
 ```python
