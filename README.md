@@ -1,7 +1,12 @@
 
 # Usage of DataSynthesizer
 
-> demo.ipynb is a Jupyter Notebook for this ReadMe.
+> The demo.ipynb is a Jupyter Notebook of ReadMe.
+>
+> DataSynthesizer is developed in Python 3.5.2 and with some third-party modules, including
+>
+> - Numpy, Scipy, Pandas, dateutil (available in Anaconda 4.2.0)
+> - faker https://github.com/joke2k/faker
 
 Given a private dataset, DataSynthesizer can generate a synthetic dataset for release to public. It infers the data types and domains for the attributes in dataset. Histograms are used to model the distribution of each attribute. Synthetic dataset is sampled from the histograms or sampled uniformly from the inferred domains.
 
