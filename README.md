@@ -60,9 +60,9 @@ describer = DataDestriber()
 ##### Step 2: Generate dataset description
 
 The dataset description is inferred by code, while users can also customize the data types and categorical indicators, e.g.,
-    - "education-num" is of type "float".
-    - "native-country" is not categrocial.
-    - "age" is categorical.
+- "education-num" is of type "float".
+- "native-country" is not categrocial.
+- "age" is categorical.
 
 
 ```python
