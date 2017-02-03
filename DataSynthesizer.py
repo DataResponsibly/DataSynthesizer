@@ -23,10 +23,6 @@ class DataDestriber(object):
     def __init__(self, histogram_size=20, categorical_threshold=10):
         self.histogram_size = histogram_size
         self.categorical_threshold = categorical_threshold
-        print('Initialized a dataset describer.')
-
-    def set_random_seed(self, seed=0):
-        np.random.seed(seed)
 
     def describe_dataset(self, file_name=None, column_to_datatype_dict={}, column_to_categorical_dict={}):
         """A comprehensive function to generate dataset description.
@@ -158,17 +154,22 @@ class DataGenerator(object):
 
     def __init__(self):
         self.fake = Faker()
-        print('Initialized a synthetic data generator.')
 
-    def generate_synthetic_dataset(self, file_name=None, N=20, uniform_columns={}):
+    def set_random_seed(self, seed=0):
+        np.random.seed(seed)
+
+    def generate_synthetic_dataset(self, file_name=None, N=20, epsilon=0.1, uniform_columns={}, seed=0):
         """A comprehensive function to generate synthetic dataset
 
         Args:
             file_name: The directory and file name of the dataset description file.
             N: Number of rows to generate.
             uniform_columns: Set of columns that should be sampled uniformly from the domain.
+            seed: Seed for the sampling process, so that the sampling is predictable.
         """
+        self.set_random_seed(seed)
         self.read_data_description(file_name)
+        self.differential_privacy(epsilon)
         self.sample_synthetic_dataset(N, uniform_columns)
 
     def generate_uniform_random_dataset(self, file_name=None, N=20):
@@ -178,6 +179,15 @@ class DataGenerator(object):
 
     def read_data_description(self, file_name=None):
         self.dataset_description = pd.read_csv(file_name, index_col='column')
+
+    def differential_privacy(self, epsilon=0.1):
+        """ Apply differential privacy to values counts in histograms. """
+        for col, description in self.dataset_description.iterrows():
+            value_counts = np.array(eval(description['value counts']))
+            value_counts = value_counts + np.random.laplace(0, 1/epsilon, value_counts.size)
+            value_counts[value_counts < 0] = 0
+            self.dataset_description.loc[col, 'value counts'] = str(value_counts.tolist())
+
 
     def sample_synthetic_dataset(self, N=20, uniform_columns={}):
         self.synthetic_dataset = pd.DataFrame(columns=self.dataset_description.index.values)
@@ -262,6 +272,10 @@ class DataGenerator(object):
     def random_missing_on_dataset_as_description(self):
         for col, column_description in self.dataset_description.iterrows():
             missing = column_description['missing']
+            self.random_missing_on_column(col, missing)
+
+    def random_missing_on_columns(self, columns=[], missing_rates=[]):
+        for col, missing in zip(columns, missing_rates):
             self.random_missing_on_column(col, missing)
 
     def random_missing_on_column(self, col=None, missing=0):

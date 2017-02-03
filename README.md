@@ -5,10 +5,9 @@
 >
 > DataSynthesizer is developed in Python 3.5.2 and with some third-party modules, including
 >
-> - Numpy, Scipy, Pandas, dateutil (available in Anaconda 4.2.0)
+> - NumPy, SciPy, Pandas, dateutil (available in Anaconda 4.3.0)
 > - faker https://github.com/joke2k/faker
-
-Given a private dataset, DataSynthesizer can generate a synthetic dataset for release to public. It infers the data types and domains for the attributes in dataset. Histograms are used to model the distribution of each attribute. Synthetic dataset is sampled from the histograms or sampled uniformly from the inferred domains.
+Given a private dataset, DataSynthesizer can generate a synthetic dataset for release to public. It infers data types and domains of the attributes in dataset. Histograms are used to model the distribution of each attribute. Synthetic dataset is sampled from the histograms or uniformly sampled from the inferred domains. It also applies differential privacy to the histograms before sampling from them.
 
 ## Data types
  The DataSynthesizer currently supports 4 basic data types.
@@ -43,7 +42,7 @@ from DataSynthesizer import DataDestriber, DataGenerator
 
 
 ```python
-# Directories of input and output files
+# input and output files
 input_dataset_file = './raw_data/AdultIncomeData/adult.csv'
 dataset_description_file = './output/description/AdultIncomeData_description.csv'
 synthetic_dataset_file = './output/synthetic_data/AdultIncomeData_synthetic.csv'
@@ -59,9 +58,9 @@ describer = DataDestriber()
 ##### Step 2: Generate dataset description
 
 The dataset description is inferred by code, while users can also customize the data types and categorical indicators, e.g.,
-- "education-num" is of type "float".
-- "native-country" is not categrocial.
-- "age" is categorical.
+    - "education-num" is of type "float".
+    - "native-country" is not categrocial.
+    - "age" is categorical.
 
 
 ```python
@@ -71,6 +70,13 @@ describer.describe_dataset(file_name=input_dataset_file,
 ```
 
 ##### Step 3: Get the dataset description
+
+Let's take a look at the input dataset
+
+
+```python
+describer.input_dataset.head()
+```
 
 The dataset description is
 
@@ -101,20 +107,28 @@ By default, the data is sampled from the histograms in dataset description. But 
 
 > generator.generate_uniform_random_dataset(dataset_description_file, N=10) # will generate a totoally random dataset.
 
-Here the example is to generate 10 rows in synthetic datset, where "age" and "education" are sampled uniformly.
+Here is an example,
+- generate 10 rows in synthetic datset
+- "age" and "education" are sampled uniformly
+- differential privacy parameter $\epsilon=0.01$
 
 
 ```python
-generator.generate_synthetic_dataset(dataset_description_file, N=10, uniform_columns={'age', 'education'})
+generator.generate_synthetic_dataset(dataset_description_file, N=10, epsilon=0.01, uniform_columns={'age', 'education'})
 ```
 
 ##### Step 7: Random missing
 
-Remove values of a given column randomly, e.g., removing 60% of age values.
+Remove values of given columns randomly, e.g., removing 60% of age values and 30% of race values.
 
 
 ```python
-generator.random_missing_on_column('age', 0.6)
+generator.random_missing_on_columns(columns=['age', 'race'], missing_rates=[0.6, 0.3])
+```
+
+
+```python
+generator.synthetic_dataset
 ```
 
 ##### Step 8: Save the synthetic dataset
