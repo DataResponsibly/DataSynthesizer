@@ -7,9 +7,11 @@
 >
 > - NumPy, SciPy, Pandas, dateutil (available in Anaconda 4.3.0)
 > - faker https://github.com/joke2k/faker
+
 Given a private dataset, DataSynthesizer can generate a synthetic dataset for release to public. It infers data types and domains of the attributes in dataset. Histograms are used to model the distribution of each attribute. Synthetic dataset is sampled from the histograms or uniformly sampled from the inferred domains. It also applies differential privacy to the histograms before sampling from them.
 
 ## Data types
+
  The DataSynthesizer currently supports 4 basic data types.
 
 | data type | example                   |
@@ -110,7 +112,7 @@ By default, the data is sampled from the histograms in dataset description. But 
 Here is an example,
 - generate 10 rows in synthetic datset
 - "age" and "education" are sampled uniformly
-- differential privacy parameter $\epsilon=0.01$
+- differential privacy parameter epsilon=0.01
 
 
 ```python
