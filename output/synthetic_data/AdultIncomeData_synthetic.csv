@@ -1,11 +1,11 @@
 ID,age,workclass,fnlwgt,education,education-num,marital-status,occupation,relationship,race,sex,capital-gain,capital-loss,hours-per-week,native-country,income
-22638,, Private,74382, HS-grad,13.0, Married-civ-spouse, Prof-specialty, Not-in-family, White, Female,326,14,16,VYRZjyuGBPtOhWMO, <=50K
-1852,48.0, Private,524818, 1st-4th,9.0, Married-civ-spouse, Machine-op-inspct, Husband,, Male,625,3458,38,FUOeqEK, <=50K
-24186,80.0, ?,145822, 11th,9.0, Never-married, ?, Husband, White, Male,5661,13,35,ACSCfYgArQWidEEdHtc, <=50K
-27825,, Private,92117, 5th-6th,10.0, Divorced, Exec-managerial, Husband, White, Male,2,1612,34,pmTHdgGmqAKARLLpNZVCSrYC, <=50K
-7560,, Private,144621, HS-grad,9.0, Never-married, Sales, Unmarried, White, Male,722,679,54,fcXgMdAloiHG, <=50K
-5025,51.0, Private,84670, Bachelors,9.0, Married-civ-spouse, Transport-moving, Husband, Black, Male,67,3664,35,DkZFtZZDn, >50K
-13629,, Private,228615, Preschool,12.0, Married-civ-spouse, Prof-specialty, Husband, White, Male,54,17,34,VExbAI, <=50K
-18308,, Private,1185199, Bachelors,13.0, Married-civ-spouse, Adm-clerical, Husband,, Male,499,20,36,ubQLBZBmiKsnVAB, >50K
-8636,76.0, Private,154565, 1st-4th,13.0, Divorced, Adm-clerical, Husband,, Male,511,10,44,eDapqBfcPmDhtUcnaU, <=50K
-420,, ?,105809, Masters,9.0, Married-civ-spouse, ?, Husband, White, Female,72,14,36,OICkkdinecTKDmgMRctcIXauvEU, >50K
+30330.0,90.0,,, 12th,9.0, Divorced,,, White, Female,,,36.0,ssjItPaLDjmeftUwcszuSOY,
+,,,292090.0, 5th-6th,, Married-civ-spouse,, Own-child, White,,5546.0,,30.0,ALWxcrrAtkplEovAQRdlvMV,
+,75.0,,90412.0,,13.0, Never-married, Craft-repair, Wife, White,,14279.0,,46.0,QZF,
+6631.0,59.0,,154508.0, Prof-school,10.0, Married-civ-spouse,, Unmarried,, Male,64.0,1799.0,25.0,QyThfIuYYGZU,
+16259.0,87.0, Private,291352.0, Assoc-acdm,9.0,,, Not-in-family, White, Male,,,34.0,fAaKve,
+25253.0,26.0, Private,149808.0,,9.0, Never-married, Transport-moving,, White,,,22.0,20.0,xxOtIfxxUzy,
+,30.0,,,,7.0, Married-civ-spouse,,, White,,938.0,,41.0,hZMQLBbDjXxAZaXQfQHTDcQ,
+16343.0,70.0,,80242.0, 1st-4th,9.0, Married-civ-spouse, Transport-moving, Own-child, White,,312.0,,22.0,cYATDx,
+,71.0, Local-gov,,,10.0,,, Unmarried, White,,924.0,,41.0,yFhbenTqUl, <=50K
+,39.0, Private,84030.0, HS-grad,9.0, Never-married,, Not-in-family, White,,,,34.0,PKvmVhyfnIvoAkGJslYyLWl, <=50K

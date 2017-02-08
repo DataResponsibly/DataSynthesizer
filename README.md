@@ -1,17 +1,12 @@
-
 # Usage of DataSynthesizer
 
-> The demo.ipynb is a Jupyter Notebook of ReadMe.
->
 > DataSynthesizer is developed in Python 3.5.2 and with some third-party modules, including
->
-> - NumPy, SciPy, Pandas, dateutil (available in Anaconda 4.3.0)
-> - faker https://github.com/joke2k/faker
+- NumPy, SciPy, Pandas, dateutil (available in Anaconda 4.3.0)
+- faker https://github.com/joke2k/faker
 
-Given a private dataset, DataSynthesizer can generate a synthetic dataset for release to public. It infers data types and domains of the attributes in dataset. Histograms are used to model the distribution of each attribute. Synthetic dataset is sampled from the histograms or uniformly sampled from the inferred domains. It also applies differential privacy to the histograms before sampling from them.
+Given a private dataset, DataSynthesizer can generate a synthetic dataset for release to public. It infers data types and domains of the attributes in dataset. Histograms are used to model the distribution of each attribute. Synthetic dataset is sampled from the histograms or uniformly sampled from the inferred domains. It also applies differential privacy to the histograms and missing rates.
 
 ## Data types
-
  The DataSynthesizer currently supports 4 basic data types.
 
 | data type | example                   |
@@ -25,14 +20,15 @@ Given a private dataset, DataSynthesizer can generate a synthetic dataset for re
 
 The domain of an attribute is as follows.
 - The "catagorical" indicates attributes with particular values, e.g., "gender", "nationality".
-- Domains are modeled by histograms, except noncategorical "string".
+- Domains are modeled by histograms.
+    - Noncategorical "string" is modeled by a histogram of the string length distribution.
 
-| data type | categorical | min              | max              | values              | probabilities       | values count       | missing rate |
+| data type | categorical | min              | max              | values              | value counts        | histogram size     | missing rate |
 | --------- | ----------- | ---------------- | ---------------- | ------------------- | ------------------- | ------------------ | ------------ |
 | int       | True/False  | min              | max              | x-axis in histogram | y-axis in histogram | #bins in histogram | missing rate |
 | float     | True/False  | min              | max              | x-axis in histogram | y-axis in histogram | #bins in histogram | missing rate |
 | string    | True        | min in length    | max in length    | x-axis in histogram | y-axis in histogram | #bins in histogram | missing rate |
-| string    | False       | min in length    | max in length    | 0                   | 0                   | 0                  | missing rate |
+| string    | False       | min in length    | max in length    | x-axis in histogram | y-axis in histogram | #bins in histogram | missing rate |
 | datetime  | True/False  | min in timestamp | max in timestamp | x-axis in histogram | y-axis in histogram | #bins in histogram | missing rate |
 
 ##### Step 0: Import DataDestriber and DataGenerator from DataSynthesizer
@@ -112,25 +108,20 @@ By default, the data is sampled from the histograms in dataset description. But 
 Here is an example,
 - generate 10 rows in synthetic datset
 - "age" and "education" are sampled uniformly
-- differential privacy parameter epsilon=0.01
+- differential privacy parameter epsilon=0.1
 
 
 ```python
-generator.generate_synthetic_dataset(dataset_description_file, N=10, epsilon=0.01, uniform_columns={'age', 'education'})
+generator.generate_synthetic_dataset(dataset_description_file, N=10, epsilon=0.1, uniform_columns={'age', 'education'})
 ```
 
 ##### Step 7: Random missing
 
-Remove values of given columns randomly, e.g., removing 60% of age values and 30% of race values.
+The missing rates in dataset description have been added with noises, which is for differential privacy.
 
 
 ```python
-generator.random_missing_on_columns(columns=['age', 'race'], missing_rates=[0.6, 0.3])
-```
-
-
-```python
-generator.synthetic_dataset
+generator.random_missing_on_dataset_as_description()
 ```
 
 ##### Step 8: Save the synthetic dataset

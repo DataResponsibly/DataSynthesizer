@@ -35,7 +35,7 @@ class DataDestriber(object):
             column_to_categorical_dict: A dict of {column_name: categroical} for a subset of columns, e.g., {"gender": True}
         """
         self.dataset_description = pd.DataFrame(columns=['data type', 'categorical', 'min', 'max', 'values',
-                                                         'value counts', 'histogram size', 'missing'])
+                                                         'value counts', 'histogram size', 'missing rate'])
         self.dataset_description.index.rename('column', inplace=True)
 
         self.column_to_datatype = dict(column_to_datatype_dict)
@@ -118,11 +118,13 @@ class DataDestriber(object):
                                                      len(distribution),
                                                      self.input_dataset[col].isnull().sum() / self.input_dataset[col].size]
 
-            elif data_type in {'int', 'float', 'datetime'}:
+            else:
 
                 # use timestamp to represent datetime
                 if data_type == 'datetime':
                     current_column = current_column.map(lambda x: parse(x).timestamp())
+                elif data_type == 'string':
+                    current_column = current_column.map(len)
 
                 distribution = current_column.value_counts(bins=self.histogram_size)
                 self.dataset_description.loc[col] = [data_type,
@@ -132,16 +134,6 @@ class DataDestriber(object):
                                                      list(distribution.index),
                                                      list(distribution.values),
                                                      len(distribution),
-                                                     self.input_dataset[col].isnull().sum() / self.input_dataset[col].size]
-            elif data_type == 'string':
-                length_series = current_column.map(len)
-                self.dataset_description.loc[col] = [data_type,
-                                                     categorical_boolean,
-                                                     length_series.min(),
-                                                     length_series.max(),
-                                                     0,
-                                                     0,
-                                                     0,
                                                      self.input_dataset[col].isnull().sum() / self.input_dataset[col].size]
 
 class DataGenerator(object):
@@ -181,12 +173,23 @@ class DataGenerator(object):
         self.dataset_description = pd.read_csv(file_name, index_col='column')
 
     def differential_privacy(self, epsilon=0.1):
-        """ Apply differential privacy to values counts in histograms. """
+        """ Apply differential privacy to values counts and missing counts in histograms. """
         for col, description in self.dataset_description.iterrows():
+
             value_counts = np.array(eval(description['value counts']))
+            missing_counts = value_counts.sum() / (1 - description['missing rate']) * description['missing rate']
+
             value_counts = value_counts + np.random.laplace(0, 1/epsilon, value_counts.size)
-            value_counts[value_counts < 0] = 0
+            value_counts[value_counts < 1] = 1
+
+            missing_counts += np.random.laplace(0, 1/epsilon)
+            if missing_counts < 0:
+                missing_counts = 0
+            elif missing_counts > value_counts.sum():
+                missing_counts = value_counts.sum()
+
             self.dataset_description.loc[col, 'value counts'] = str(value_counts.tolist())
+            self.dataset_description.loc[col, 'missing rate'] = missing_counts / value_counts.sum()
 
 
     def sample_synthetic_dataset(self, N=20, uniform_columns={}):
@@ -271,7 +274,7 @@ class DataGenerator(object):
 
     def random_missing_on_dataset_as_description(self):
         for col, column_description in self.dataset_description.iterrows():
-            missing = column_description['missing']
+            missing = column_description['missing rate']
             self.random_missing_on_column(col, missing)
 
     def random_missing_on_columns(self, columns=[], missing_rates=[]):
