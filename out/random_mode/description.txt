@@ -1,0 +1,176 @@
+{
+    "attribute_description": {
+        "age": {
+            "datatype": "int",
+            "is_categorical": false,
+            "min": 17,
+            "max": 90,
+            "distribution_bins": [
+                16.927,
+                20.65,
+                24.3,
+                27.95,
+                31.6,
+                35.25,
+                38.9,
+                42.55,
+                46.2,
+                49.85,
+                53.5,
+                57.15,
+                60.8,
+                64.44999999999999,
+                68.1,
+                71.75,
+                75.4,
+                79.05,
+                82.7,
+                86.35
+            ],
+            "distribution_probabilities": [
+                0.07421755979345686,
+                0.09721294072473383,
+                0.07689820121377791,
+                0.10504300427720496,
+                0.10637141378825062,
+                0.07914714189145693,
+                0.09853528113966525,
+                0.09104257515691454,
+                0.05623769772994869,
+                0.06561034510560383,
+                0.04759688706947805,
+                0.03132702310916934,
+                0.030768631857378485,
+                0.01803924012043446,
+                0.007991532479276697,
+                0.0068924998487854125,
+                0.004009291760869286,
+                0.001157543548216637,
+                0.0009622754087191166,
+                0.0009389139766591815
+            ],
+            "missing_rate": 0.0
+        },
+        "education": {
+            "datatype": "string",
+            "is_categorical": true,
+            "min_length": 4,
+            "max_length": 13,
+            "distribution_bins": [
+                " 10th",
+                " 11th",
+                " 12th",
+                " 1st-4th",
+                " 5th-6th",
+                " 7th-8th",
+                " 9th",
+                " Assoc-acdm",
+                " Assoc-voc",
+                " Bachelors",
+                " Doctorate",
+                " HS-grad",
+                " Masters",
+                " Preschool",
+                " Prof-school",
+                " Some-college"
+            ],
+            "distribution_probabilities": [
+                0.02961293300818196,
+                0.0360912282392456,
+                0.01425045897260926,
+                0.005235446999359589,
+                0.010434148373344089,
+                0.01907090333019977,
+                0.015621568203248186,
+                0.032353886232816015,
+                0.042311861441490815,
+                0.16413267339038862,
+                0.012553577233817646,
+                0.32266810465408646,
+                0.052321666877830464,
+                0.0017167513851679827,
+                0.01774606848139926,
+                0.22387872317681431
+            ],
+            "missing_rate": 0.0
+        },
+        "sex": {
+            "datatype": "string",
+            "is_categorical": true,
+            "min_length": 5,
+            "max_length": 7,
+            "distribution_bins": [
+                " Female",
+                " Male"
+            ],
+            "distribution_probabilities": [
+                0.33097424055922736,
+                0.6690257594407727
+            ],
+            "missing_rate": 0.0
+        },
+        "relationship": {
+            "datatype": "string",
+            "is_categorical": true,
+            "min_length": 5,
+            "max_length": 15,
+            "distribution_bins": [
+                " Husband",
+                " Not-in-family",
+                " Other-relative",
+                " Own-child",
+                " Unmarried",
+                " Wife"
+            ],
+            "distribution_probabilities": [
+                0.40506545025275287,
+                0.255557572794135,
+                0.029977556963862284,
+                0.1557088320105816,
+                0.1053802042687526,
+                0.0483103837099155
+            ],
+            "missing_rate": 0.0
+        },
+        "marital-status": {
+            "datatype": "string",
+            "is_categorical": true,
+            "min_length": 8,
+            "max_length": 22,
+            "distribution_bins": [
+                " Divorced",
+                " Married-AF-spouse",
+                " Married-civ-spouse",
+                " Married-spouse-absent",
+                " Never-married",
+                " Separated",
+                " Widowed"
+            ],
+            "distribution_probabilities": [
+                0.1366079804640941,
+                0.00039894572566547584,
+                0.4610897545828395,
+                0.011878724035148508,
+                0.32920286077986155,
+                0.030117259073077718,
+                0.030704475339313152
+            ],
+            "missing_rate": 0.0
+        },
+        "income": {
+            "datatype": "string",
+            "is_categorical": true,
+            "min_length": 5,
+            "max_length": 6,
+            "distribution_bins": [
+                " <=50K",
+                " >50K"
+            ],
+            "distribution_probabilities": [
+                0.7589966763308276,
+                0.2410033236691724
+            ],
+            "missing_rate": 0.0
+        }
+    }
+}
