@@ -3,7 +3,7 @@ from random import uniform
 import numpy as np
 import pandas as pd
 
-from DataSynthesizer.lib.utils import set_random_seed, read_json_file
+from DataSynthesizer.lib.utils import set_random_seed, read_json_file, generate_random_string
 
 
 class DataGenerator(object):
@@ -11,7 +11,6 @@ class DataGenerator(object):
         self.n = 0
 
     def generate_dataset_in_random_mode(self, n, description_file, seed=0):
-        self.n = n
         set_random_seed(seed)
         self.description = read_json_file(description_file)
 
@@ -21,7 +20,18 @@ class DataGenerator(object):
             datatype = attr_description['datatype']
             is_categorical = attr_description['is_categorical']
             if is_categorical:
-                self.synthetic_dataset[attr] = np.random.choice()
+                self.synthetic_dataset[attr] = np.random.choice(attr_description['distribution_bins'], n)
+            elif datatype == 'string':
+                length = np.random.randint(attr_description['min'], attr_description['max'])
+                self.synthetic_dataset[attr] = length
+                self.synthetic_dataset[attr] = self.synthetic_dataset[attr].map(lambda x: generate_random_string(x))
+            else:
+                minimum, maximum = attr_description['min'], attr_description['max']
+                if datatype == 'int':
+                    self.synthetic_dataset[attr] = np.random.randint(minimum, maximum + 1, n)
+                else:
+                    self.synthetic_dataset[attr] = np.random.uniform(minimum, maximum, n)
+
 
     def generate_dataset_in_correlated_attribute_mode(self, n, description_file, seed=0):
         self.n = n

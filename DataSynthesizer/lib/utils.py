@@ -1,5 +1,6 @@
 import json
 import random
+from string import ascii_lowercase
 
 import numpy as np
 import pandas as pd
@@ -98,3 +99,7 @@ def display_bayesian_network(bn):
     print('Constructed Bayesian network:')
     for child, parents in bn:
         print("    {0:{width}} has parents {1}.".format(child, parents, width=length))
+
+
+def generate_random_string(length):
+    return ''.join(np.random.choice(list(ascii_lowercase), size=length))

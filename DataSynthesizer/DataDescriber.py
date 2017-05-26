@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from dateutil.parser import parse
 
-from DataSynthesizer.lib.PrivBayes import greedy_bayes, construct_noisy_conditional_distributions
 import DataSynthesizer.lib.utils as utils
+from DataSynthesizer.lib.PrivBayes import greedy_bayes, construct_noisy_conditional_distributions
 
 
 # TODO allow users to specify an attribute to be non-categorical.
