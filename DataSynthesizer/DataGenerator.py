@@ -9,14 +9,15 @@ from DataSynthesizer.lib.utils import set_random_seed, read_json_file, generate_
 class DataGenerator(object):
     def __init__(self):
         self.n = 0
+        self.synthetic_dataset = pd.DataFrame()
 
     def generate_dataset_in_random_mode(self, n, description_file, seed=0):
         set_random_seed(seed)
-        self.description = read_json_file(description_file)
+        description = read_json_file(description_file)
 
         self.synthetic_dataset = pd.DataFrame()
-        for attr in self.description['attribute_description'].keys():
-            attr_description = self.description['attribute_description'][attr]
+        for attr in description['attribute_description'].keys():
+            attr_description = description['attribute_description'][attr]
             datatype = attr_description['datatype']
             is_categorical = attr_description['is_categorical']
             if is_categorical:
@@ -32,16 +33,31 @@ class DataGenerator(object):
                 else:
                     self.synthetic_dataset[attr] = np.random.uniform(minimum, maximum, n)
 
+    def generate_dataset_in_independent_mode(self, n, description_file, seed=0):
+        set_random_seed(seed)
+        self.description = read_json_file(description_file)
+
+        attributes = self.description['meta']['attribute_list']
+        self.encoded_dataset = pd.DataFrame(columns=attributes, index=list(range(n)))
+        for attr in attributes:
+            attr_info = self.description['attribute_description'][attr]
+            bins = attr_info['distribution_bins']
+            probs = attr_info['distribution_probabilities']
+            self.encoded_dataset[attr] = np.random.choice(list(range(len(bins))), size=n, p=probs)
+
+        self.sample_from_encoded_dataset()
 
     def generate_dataset_in_correlated_attribute_mode(self, n, description_file, seed=0):
         self.n = n
         set_random_seed(seed)
         self.description = read_json_file(description_file)
         self.encoded_dataset = DataGenerator.generate_encoded_dataset(self.n, self.description)
+        self.sample_from_encoded_dataset()
 
+    def sample_from_encoded_dataset(self):
         self.synthetic_dataset = self.encoded_dataset.copy()
         for attribute in self.synthetic_dataset:
-            self.synthetic_dataset.loc[:, attribute] = self.synthetic_dataset[attribute].apply(
+            self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].apply(
                 lambda x: self.sample_uniformly_for_attribute(attribute, int(x)))
             if self.description['attribute_description'][attribute]['datatype'] == 'int':
                 self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].astype(int)

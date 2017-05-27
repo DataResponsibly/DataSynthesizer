@@ -49,6 +49,7 @@ class DataDescriber(object):
         self.attribute_to_datatype = dict(attribute_to_datatype_dict)
         self.categorical_attributes = set(categorical_attributes)
         self.read_dataset_from_csv(dataset_file)
+        self.get_dataset_meta_info()
         self.infer_attribute_datatypes()
         self.infer_domains()
         self.inject_laplace_noise_into_distribution_per_attribute(epsilon)
@@ -73,9 +74,7 @@ class DataDescriber(object):
         self.bayesian_network = greedy_bayes(self.input_dataset[self.encoded_dataset.columns], k, epsilon)
         self.dataset_description['bayesian_network'] = self.bayesian_network
         self.dataset_description['conditional_probabilities'] = construct_noisy_conditional_distributions(
-            self.bayesian_network,
-            self.encoded_dataset,
-            epsilon)
+                                                                self.bayesian_network, self.encoded_dataset, epsilon)
 
     def read_dataset_from_csv(self, file_name=None):
         try:
@@ -90,6 +89,12 @@ class DataDescriber(object):
             num_unique_values = column_values.unique().size
             if (num_tuples == num_unique_values) or (num_tuples == 0):
                 self.input_dataset.drop(attribute, axis=1, inplace=True)
+
+    def get_dataset_meta_info(self):
+        num_tuples, num_attributes = self.input_dataset.shape
+        attribute_list = self.input_dataset.columns.tolist()
+        meta_info = {"num_tuples": num_tuples, "num_attributes": num_attributes, "attribute_list": attribute_list}
+        self.dataset_description['meta'] = meta_info
 
     def infer_attribute_datatypes(self):
         attributes_with_unspecified_datatype = set(self.input_dataset.columns) - set(self.attribute_to_datatype.keys())
