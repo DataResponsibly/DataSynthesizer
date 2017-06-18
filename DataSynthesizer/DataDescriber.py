@@ -188,11 +188,16 @@ class DataDescriber(object):
         distribution.sort_index(inplace=True)
         distribution_probabilities = utils.normalize_given_distribution(distribution)
 
+        if is_categorical_attribute:
+            distribution_bins = np.array(distribution.index).tolist()
+        else:
+            distribution_bins = np.array(distribution.index.left).tolist()
+
         attribute_info = {'datatype': datatype,
                           'is_categorical': is_categorical_attribute,
                           'min_length': int(column_value_lengths.min()),
                           'max_length': int(column_value_lengths.max()),
-                          'distribution_bins': np.array(distribution.index).tolist(),
+                          'distribution_bins': distribution_bins,
                           'distribution_probabilities': distribution_probabilities.tolist(),
                           'missing_rate': column_values.isnull().sum() / column_values.index.size}
 
