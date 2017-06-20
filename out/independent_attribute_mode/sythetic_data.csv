@@ -9678,7 +9678,7 @@ age,education,sex,relationship,marital-status,income
 39, Some-college, Female, Not-in-family, Married-civ-spouse, >50K
 62, Some-college, Male, Not-in-family, Married-civ-spouse, <=50K
 58, HS-grad, Male, Not-in-family, Widowed, <=50K
-19, 5th-6th, Male, Husband, Never-married, <=50K
+18, 5th-6th, Male, Husband, Never-married, <=50K
 39, Some-college, Male, Unmarried, Married-civ-spouse, <=50K
 32, Assoc-voc, Male, Husband, Married-civ-spouse, <=50K
 35, HS-grad, Female, Husband, Never-married, <=50K
@@ -10517,7 +10517,7 @@ age,education,sex,relationship,marital-status,income
 32, Some-college, Male, Husband, Married-civ-spouse, <=50K
 45, Bachelors, Male, Not-in-family, Divorced, <=50K
 35, HS-grad, Male, Husband, Married-civ-spouse, <=50K
-18, Bachelors, Male, Unmarried, Never-married, <=50K
+17, Bachelors, Male, Unmarried, Never-married, <=50K
 43, HS-grad, Male, Not-in-family, Married-civ-spouse, >50K
 60, Bachelors, Female, Husband, Married-civ-spouse, <=50K
 41, HS-grad, Male, Husband, Never-married, <=50K

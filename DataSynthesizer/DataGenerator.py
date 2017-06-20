@@ -52,21 +52,30 @@ class DataGenerator(object):
         set_random_seed(seed)
         self.description = read_json_file(description_file)
         self.encoded_dataset = DataGenerator.generate_encoded_dataset(self.n, self.description)
+
+        for attr in self.description['meta']['ignored_attributes_by_BN']:
+            attr_info = self.description['attribute_description'][attr]
+            bins = attr_info['distribution_bins']
+            probs = attr_info['distribution_probabilities']
+            self.encoded_dataset[attr] = np.random.choice(list(range(len(bins))), size=n, p=probs)
+
         self.sample_from_encoded_dataset()
+
 
     def sample_from_encoded_dataset(self):
         self.synthetic_dataset = self.encoded_dataset.copy()
         for attribute in self.synthetic_dataset:
+            datatype = self.description['attribute_description'][attribute]['datatype']
+            not_categorical = not self.description['attribute_description'][attribute]['is_categorical']
             self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].apply(
                 lambda x: self.sample_uniformly_for_attribute(attribute, int(x)))
-            if self.description['attribute_description'][attribute]['datatype'] == 'int':
+            if datatype == 'int':
                 self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].astype(int)
+            elif datatype == 'string' and not_categorical:
+                self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].map(
+                    lambda x: generate_random_string(int(x)))
 
-        ordered_attributes = []
-        for attribute in self.description['attribute_description'].keys():
-            if attribute in self.synthetic_dataset:
-                ordered_attributes.append(attribute)
-        self.synthetic_dataset = self.synthetic_dataset.loc[:, ordered_attributes]
+        self.synthetic_dataset = self.synthetic_dataset.loc[:, self.description['meta']['attribute_list']]
 
     @staticmethod
     def get_sampling_order(bn):

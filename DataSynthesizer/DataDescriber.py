@@ -8,73 +8,86 @@ import DataSynthesizer.lib.utils as utils
 from DataSynthesizer.lib.PrivBayes import greedy_bayes, construct_noisy_conditional_distributions
 
 
-# TODO allow users to specify an attribute to be non-categorical.
-# TODO allwo users to specify Null values.
+# TODO allow users to specify Null values.
 class DataDescriber(object):
     """Analyze input dataset, then save the dataset description in a JSON file.
 
     Attributes:
         histogram_size: int, number of bins in histograms.
         threshold_of_categorical_variable: int, categorical variables have no more than "this number" distinct values.
-        attribute_to_datatype: Dict, mappings of {attribute: datatype}, e.g., {"age": "int", "gender": "string"}
+        attribute_to_datatype: Dict, mappings of {attribute: datatype}, e.g., {"age": "int", "gender": "string"}.
+        attribute_to_is_categorical: Dict, mappings of {attribute: boolean},, e.g., {"gender":True, "age":False}.
+        ignored_attributes_by_BN: List, attributes containing only unique values are ignored in BN construction.
         dataset_description: Dict, a nested dictionary (equivalent to JSON) recording the mined dataset information.
-        categorical_attributes: Set or List, e.g., {"gender", "nationality"}
-        independent_attributes: Set or List, attributes that are excluded in BN construction.
         input_dataset: the dataset to be analyzed.
-        bayesian_network: list of (child, (parent,)) in constructed BN.
+        bayesian_network: list of [child, [parent,]] in constructed BN.
+        encoded_dataset: DataFrame, a discrete dataset taken as input by PrivBayes in correlated attribute mode.
+        datatypes: Set, the data types supported by DataSynthesizer.
+        numerical_attributes: Set, the datatypes numerical to DataSynthesizer.
     """
 
     def __init__(self, histogram_size=20, threshold_of_categorical_variable=10):
         self.histogram_size = histogram_size
         self.threshold_of_categorical_variables = threshold_of_categorical_variable
-        self.dataset_description = {}
         self.attribute_to_datatype = {}
-        self.categorical_attributes = set()
-        self.independent_attributes = set()
-        self.input_dataset = pd.DataFrame()
+        self.attribute_to_is_categorical = {}
+        self.ignored_attributes_by_BN = []
+        self.dataset_description = {}
+        self.input_dataset = None
         self.bayesian_network = []
         self.encoded_dataset = pd.DataFrame()
 
         self.datatypes = {'int', 'float', 'datetime', 'string'}
         self.numerical_datatypes = {'int', 'float', 'datetime'}
 
-    def describe_dataset_in_random_mode(self, dataset_file, categorical_attributes={}, seed=0):
-        self.describe_dataset_in_independent_attribute_mode(dataset_file, epsilon=0.1,
-                                                            categorical_attributes=categorical_attributes, seed=seed)
+    def describe_dataset_in_random_mode(self, dataset_file, attribute_to_is_categorical={}, seed=0):
+        self.describe_dataset_in_independent_attribute_mode(dataset_file,
+                                                            epsilon=0.1,
+                                                            attribute_to_is_categorical=attribute_to_is_categorical,
+                                                            seed=seed)
 
-    def describe_dataset_in_independent_attribute_mode(self, dataset_file, epsilon=0.1,
-                                                       attribute_to_datatype_dict={}, categorical_attributes={},
+    def describe_dataset_in_independent_attribute_mode(self,
+                                                       dataset_file,
+                                                       epsilon=0.1,
+                                                       attribute_to_datatype_dict={},
+                                                       attribute_to_is_categorical={},
                                                        seed=0):
         utils.set_random_seed(seed)
         self.attribute_to_datatype = dict(attribute_to_datatype_dict)
-        self.categorical_attributes = set(categorical_attributes)
+        self.attribute_to_is_categorical = attribute_to_is_categorical
         self.read_dataset_from_csv(dataset_file)
         self.get_dataset_meta_info()
         self.infer_attribute_datatypes()
         self.infer_domains()
         self.inject_laplace_noise_into_distribution_per_attribute(epsilon)
 
-    def describe_dataset_in_correlated_attribute_mode(self, dataset_file, k=0, epsilon=0.1,
-                                                      attribute_to_datatype_dict={}, categorical_attributes={}, seed=0):
+    def describe_dataset_in_correlated_attribute_mode(self,
+                                                      dataset_file,
+                                                      k=0,
+                                                      epsilon=0.1,
+                                                      attribute_to_datatype_dict={},
+                                                      attribute_to_is_categorical_dict={},
+                                                      seed=0):
         """Generate dataset description using correlated attribute mode.
 
         Users only need to call this function. It packages the rest functions.
 
         Args:
             dataset_file: string, directory and file name of the sensitive dataset as input in csv format.
+            k: int, maximum number of parents in BN construction.
             epsilon: float, a parameter in differential privacy.
-            attribute_to_datatype_dict: Dict, mappings of {column_name: data_type}, e.g., {"gender": "string"}.
-            categorical_attributes: Set or List, e.g., {"gender", "nationality"}
+            attribute_to_datatype_dict: Dict, mappings of {attribute: datatype}, e.g., {"age": "int"}.
+            attribute_to_is_categorical_dict: Dict, mappings of {attribute: boolean},, e.g., {"age":False}.
             seed: int or float, seeding the randomness.
         """
 
         self.describe_dataset_in_independent_attribute_mode(dataset_file, epsilon, attribute_to_datatype_dict,
-                                                            categorical_attributes, seed)
+                                                            attribute_to_is_categorical_dict, seed)
         self.encoded_dataset = self.encode_dataset_into_interval_indices()
         self.bayesian_network = greedy_bayes(self.input_dataset[self.encoded_dataset.columns], k, epsilon)
         self.dataset_description['bayesian_network'] = self.bayesian_network
         self.dataset_description['conditional_probabilities'] = construct_noisy_conditional_distributions(
-                                                                self.bayesian_network, self.encoded_dataset, epsilon)
+            self.bayesian_network, self.encoded_dataset, epsilon)
 
     def read_dataset_from_csv(self, file_name=None):
         try:
@@ -82,19 +95,16 @@ class DataDescriber(object):
         except (UnicodeDecodeError, NameError):
             self.input_dataset = pd.read_csv(file_name, encoding='latin1')
 
-        # filter candidate key attributes and attributes with empty domain.
+        # find candidate key attributes or attributes with empty domain.
         for attribute in self.input_dataset:
-            column_values = self.input_dataset[attribute].dropna()
-            num_tuples = column_values.size
-            num_unique_values = column_values.unique().size
-            if (num_tuples == num_unique_values) or (num_tuples == 0):
-                self.input_dataset.drop(attribute, axis=1, inplace=True)
+            if self.input_dataset[attribute].dropna().is_unique:
+                print(attribute)
+                self.ignored_attributes_by_BN.append(attribute)
 
     def get_dataset_meta_info(self):
-        num_tuples, num_attributes = self.input_dataset.shape
-        attribute_list = self.input_dataset.columns.tolist()
-        meta_info = {"num_tuples": num_tuples, "num_attributes": num_attributes, "attribute_list": attribute_list}
-        self.dataset_description['meta'] = meta_info
+        self.dataset_description['meta'] = {"num_tuples": self.input_dataset.index.size,
+                                            "num_attributes": self.input_dataset.columns.size,
+                                            "attribute_list": self.input_dataset.columns.tolist()}
 
     def infer_attribute_datatypes(self):
         attributes_with_unspecified_datatype = set(self.input_dataset.columns) - set(self.attribute_to_datatype.keys())
@@ -120,16 +130,12 @@ class DataDescriber(object):
 
     def is_categorical(self, attribute):
         """Detect whether a column is categorical.
-        
-        A column is categorical if one of following conditions.
-            (1) it is specified by user to be categorical
-            (2) its domain is less than threshold_of_categorical_variables. 
 
         Args:
             attribute: string, attribute name.
         """
-        if attribute in self.categorical_attributes:
-            return True
+        if attribute in self.attribute_to_is_categorical:
+            return self.attribute_to_is_categorical[attribute]
         else:
             if self.input_dataset[attribute].dropna().unique().size <= self.threshold_of_categorical_variables:
                 return True
@@ -245,8 +251,9 @@ class DataDescriber(object):
             bins = attribute_info['distribution_bins']
 
             if datatype == 'string' and not is_categorical_attribute:
-                encoded_dataset.drop(attribute, axis=1, inplace=True)
                 # non-categorical string attributes are ignored in BN construction.
+                encoded_dataset.drop(attribute, axis=1, inplace=True)
+                self.ignored_attributes_by_BN.append(attribute)
                 continue
             elif datatype == 'datetime':
                 encoded_dataset[attribute] = encoded_dataset[attribute].map(lambda x: parse(x).timestamp())
@@ -262,6 +269,7 @@ class DataDescriber(object):
             # missing values are replaced with len(bins).
             encoded_dataset[attribute].fillna(value=len(bins), inplace=True)
 
+        self.dataset_description['meta']['ignored_attributes_by_BN'] = self.ignored_attributes_by_BN
         return encoded_dataset
 
     def save_dataset_description_to_file(self, file_name):
