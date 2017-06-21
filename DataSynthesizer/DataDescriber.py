@@ -154,23 +154,21 @@ class DataDescriber(object):
         is_categorical_attr = self.is_categorical(attribute)
         if is_categorical_attr:
             distribution = column_dropna.value_counts()
-        else:
-            distribution = column_dropna.value_counts(bins=self.histogram_size)
-
-        distribution.sort_index(inplace=True)
-        distribution_probabilities = utils.normalize_given_distribution(distribution)
-
-        if is_categorical_attr:
+            distribution.sort_index(inplace=True)
+            distribution_probabilities = utils.normalize_given_distribution(distribution).tolist()
             distribution_bins = np.array(distribution.index).tolist()
         else:
-            distribution_bins = np.array(distribution.index.left).tolist()
+            distribution = np.histogram(column_dropna, bins=self.histogram_size)
+            distribution_probabilities = utils.normalize_given_distribution(distribution[0]).tolist()
+            distribution_bins = distribution[1][:-1].tolist()
+            distribution_bins[0] = distribution_bins[0] - 0.001 * (distribution_bins[1] - distribution_bins[0])
 
         attribute_info = {'datatype': datatype,
                           'is_categorical': is_categorical_attr,
                           'min': float(column_dropna.min()),
                           'max': float(column_dropna.max()),
                           'distribution_bins': distribution_bins,
-                          'distribution_probabilities': distribution_probabilities.tolist(),
+                          'distribution_probabilities': distribution_probabilities,
                           'missing_rate': column_values.isnull().sum() / column_values.index.size}
 
         if datatype == 'int':
@@ -188,23 +186,21 @@ class DataDescriber(object):
         is_categorical_attribute = self.is_categorical(attribute)
         if is_categorical_attribute:
             distribution = column_dropna.value_counts()
-        else:
-            distribution = column_value_lengths.value_counts(bins=self.histogram_size)
-
-        distribution.sort_index(inplace=True)
-        distribution_probabilities = utils.normalize_given_distribution(distribution)
-
-        if is_categorical_attribute:
+            distribution.sort_index(inplace=True)
+            distribution_probabilities = utils.normalize_given_distribution(distribution).tolist()
             distribution_bins = np.array(distribution.index).tolist()
         else:
-            distribution_bins = np.array(distribution.index.left).tolist()
+            distribution = np.histogram(column_value_lengths, bins=self.histogram_size)
+            distribution_probabilities = utils.normalize_given_distribution(distribution[1]).tolist()
+            distribution_bins = distribution[1][:-1].tolist()
+            distribution_bins[0] = distribution_bins[0] - 0.001 * (distribution_bins[1] - distribution_bins[0])
 
         attribute_info = {'datatype': datatype,
                           'is_categorical': is_categorical_attribute,
                           'min_length': int(column_value_lengths.min()),
                           'max_length': int(column_value_lengths.max()),
                           'distribution_bins': distribution_bins,
-                          'distribution_probabilities': distribution_probabilities.tolist(),
+                          'distribution_probabilities': distribution_probabilities,
                           'missing_rate': column_values.isnull().sum() / column_values.index.size}
 
         return attribute_info
@@ -264,7 +260,7 @@ class DataDescriber(object):
             else:
                 # the intervals are half-open, i.e., [1, 2)
                 encoded_dataset[attribute] = encoded_dataset[~encoded_dataset[attribute].isnull()][
-                    attribute].map(lambda x: bins.index([i for i in bins if i < x][-1]))
+                    attribute].map(lambda x: bins.index([i for i in bins if i <= x][-1]))
 
             # missing values are replaced with len(bins).
             encoded_dataset[attribute].fillna(value=len(bins), inplace=True)
@@ -282,10 +278,9 @@ class DataDescriber(object):
 
 if __name__ == '__main__':
     # AdultIncome - reduced
-    input_dataset_file = '../out/mock_input/adult_reduced.csv'
+    input_dataset_file = '../data/adult_reduced.csv'
     dataset_description_file = '../out/AdultIncome/description_test.txt'
     synthetic_dataset_file = '../out/AdultIncome/output_test.csv'
 
-    describer = DataDescriber()
-    describer.describe_dataset_in_correlated_attribute_mode(input_dataset_file, k=2, epsilon=0.1)
-    describer.save_dataset_description_to_file(dataset_description_file)
+    df = pd.read_csv(input_dataset_file)
+    print(df['age'].min())
