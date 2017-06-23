@@ -37,8 +37,8 @@ class DataDescriber(object):
         self.bayesian_network = []
         self.encoded_dataset = pd.DataFrame()
 
-        self.datatypes = {'int', 'float', 'datetime', 'string'}
-        self.numerical_datatypes = {'int', 'float', 'datetime'}
+        self.datatypes = {'integer', 'float', 'datetime', 'string'}
+        self.numerical_datatypes = {'integer', 'float', 'datetime'}
 
     def describe_dataset_in_random_mode(self, dataset_file, attribute_to_is_categorical={}, seed=0):
         self.describe_dataset_in_independent_attribute_mode(dataset_file,
@@ -98,7 +98,6 @@ class DataDescriber(object):
         # find candidate key attributes or attributes with empty domain.
         for attribute in self.input_dataset:
             if self.input_dataset[attribute].dropna().is_unique:
-                print(attribute)
                 self.ignored_attributes_by_BN.append(attribute)
 
     def get_dataset_meta_info(self):
@@ -115,7 +114,7 @@ class DataDescriber(object):
             # current attribute is either int or float.
             if attr in numeric_attributes:
                 if (current_column == current_column.astype(int)).all():
-                    self.attribute_to_datatype[attr] = 'int'
+                    self.attribute_to_datatype[attr] = 'integer'
                 else:
                     self.attribute_to_datatype[attr] = 'float'
 
@@ -171,7 +170,7 @@ class DataDescriber(object):
                           'distribution_probabilities': distribution_probabilities,
                           'missing_rate': column_values.isnull().sum() / column_values.index.size}
 
-        if datatype == 'int':
+        if datatype == 'integer':
             attribute_info['min'] = int(column_dropna.min())
             attribute_info['max'] = int(column_dropna.max())
 
@@ -191,7 +190,7 @@ class DataDescriber(object):
             distribution_bins = np.array(distribution.index).tolist()
         else:
             distribution = np.histogram(column_value_lengths, bins=self.histogram_size)
-            distribution_probabilities = utils.normalize_given_distribution(distribution[1]).tolist()
+            distribution_probabilities = utils.normalize_given_distribution(distribution[0]).tolist()
             distribution_bins = distribution[1][:-1].tolist()
             distribution_bins[0] = distribution_bins[0] - 0.001 * (distribution_bins[1] - distribution_bins[0])
 

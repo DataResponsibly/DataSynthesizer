@@ -28,7 +28,7 @@ class DataGenerator(object):
                 self.synthetic_dataset[attr] = self.synthetic_dataset[attr].map(lambda x: generate_random_string(x))
             else:
                 minimum, maximum = attr_description['min'], attr_description['max']
-                if datatype == 'int':
+                if datatype == 'integer':
                     self.synthetic_dataset[attr] = np.random.randint(minimum, maximum + 1, n)
                 else:
                     self.synthetic_dataset[attr] = np.random.uniform(minimum, maximum, n)
@@ -61,7 +61,6 @@ class DataGenerator(object):
 
         self.sample_from_encoded_dataset()
 
-
     def sample_from_encoded_dataset(self):
         self.synthetic_dataset = self.encoded_dataset.copy()
         for attribute in self.synthetic_dataset:
@@ -69,7 +68,7 @@ class DataGenerator(object):
             not_categorical = not self.description['attribute_description'][attribute]['is_categorical']
             self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].apply(
                 lambda x: self.sample_uniformly_for_attribute(attribute, int(x)))
-            if datatype == 'int':
+            if datatype == 'integer':
                 self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].astype(int)
             elif datatype == 'string' and not_categorical:
                 self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].map(
@@ -88,8 +87,7 @@ class DataGenerator(object):
     def generate_encoded_dataset(n, description):
         bn = description['bayesian_network']
         bn_root_attr = bn[0][1][0]
-        root_attr_dist = description['conditional_probabilities'][bn_root_attr]
-
+        root_attr_dist = description['attribute_description'][bn_root_attr]['distribution_probabilities']
         encoded_df = pd.DataFrame(columns=DataGenerator.get_sampling_order(bn), dtype=int)
         encoded_df[bn_root_attr] = np.random.choice(len(root_attr_dist), size=n, p=root_attr_dist)
 
@@ -105,12 +103,14 @@ class DataGenerator(object):
 
                 filter_condition = eval(filter_condition[:-3])
 
-                size = encoded_df.loc[filter_condition].reset_index().index.size
+                size = encoded_df[filter_condition].shape[0]
                 if size:
                     encoded_df.loc[filter_condition, child] = np.random.choice(len(dist), size=size, p=dist)
 
-        encoded_df.dropna(inplace=True)
-        encoded_df = encoded_df.iloc[:n]
+            unconditioned_distribution = description['attribute_description'][child]['distribution_probabilities']
+            encoded_df.loc[encoded_df[child].isnull(), child] = np.random.choice(len(unconditioned_distribution),
+                                                                                 size=encoded_df[child].isnull().sum(),
+                                                                                 p=unconditioned_distribution)
         return encoded_df
 
     def sample_uniformly_for_attribute(self, attribute, idx):
@@ -129,10 +129,11 @@ if __name__ == '__main__':
     from time import time
 
     dataset_description_file = '../out/AdultIncome/description_test.txt'
+    dataset_description_file = '/home/haoyue/GitLab/data-responsibly-webUI/dataResponsiblyUI/static/intermediatedata/1498175138.8088856_description.txt'
 
     generator = DataGenerator()
 
     t = time()
-    generator.generate_dataset_in_correlated_attribute_mode(4000, dataset_description_file)
+    generator.generate_dataset_in_correlated_attribute_mode(51, dataset_description_file)
     print('running time: {} s'.format(time() - t))
-    print(generator.synthetic_dataset.loc[:100])
+    print(generator.synthetic_dataset.loc[:50])
