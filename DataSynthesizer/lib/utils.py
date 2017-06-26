@@ -67,7 +67,8 @@ def pairwise_attributes_mutual_information(dataset):
     mi_df = pd.DataFrame(columns=dataset.columns, index=dataset.columns, dtype=float)
     for row in mi_df.columns:
         for col in mi_df.columns:
-            mi_df.loc[row, col] = normalized_mutual_info_score(dataset[row], dataset[col])
+            mi_df.loc[row, col] = normalized_mutual_info_score(dataset[row].astype(str),
+                                                               dataset[col].astype(str))
     return mi_df
 
 

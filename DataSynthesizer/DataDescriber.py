@@ -180,7 +180,7 @@ class DataDescriber(object):
         datatype = self.attribute_to_datatype[attribute]
         column_values = self.input_dataset[attribute]
         column_dropna = column_values.dropna()
-        column_value_lengths = column_dropna.map(len)
+        column_value_lengths = column_dropna.astype(str).map(len)
 
         is_categorical_attribute = self.is_categorical(attribute)
         if is_categorical_attribute:
