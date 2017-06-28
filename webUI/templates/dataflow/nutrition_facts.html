@@ -1,0 +1,238 @@
+{% load static %}
+
+<head>
+    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="{% static 'metisMenu/metisMenu.min.css' %}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'sbadmin/css/sb-admin-2.css' %}" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="{% static 'morrisjs/morris.css' %}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- jQuery -->
+    <script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
+    <!-- Highcharts JavaScript -->
+    <script src="{% static 'highcharts/code/highcharts.js' %}"></script>
+    <script src="{% static 'highcharts/code/modules/exporting.js' %}"></script>
+    <script src="https://code.highcharts.com/modules/gray.js"></script>
+
+</head>
+
+<body>
+<div class="page">
+    <div class="outer_pic">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Nutritional Label</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            Recipe
+                        </div>
+                        <div class="panel-body">
+                            <p>sort by decreasing income</p>
+                        </div>
+                        <div class="panel-footer">
+                            <strong red>income</strong> correlates with <strong red>age</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="panel panel-danger">
+                        <div class="panel-heading">
+                            Your Outcome
+                        </div>
+                        <div class="panel-body">
+                            <h3>rank 45</h3>
+                        </div>
+                        <div class="panel-footer">
+                            increase <strong>income</strong> by 20K to move to top-10
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6">
+                    <div class="panel panel-yellow">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="fa fa-bell fa-5x"></i>
+                                </div>
+                                <div class="col-xs-5 text-center">
+                                    <div class="huge">age</div>
+                                    <div><strong red>parity fails</strong></div>
+                                </div>
+                                <div class="col-xs-12 text-right">
+                                    <div class="huge">income</div>
+                                    <div><strong red>parity fails</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="#">
+                            <div class="panel-footer">
+                                <span class="pull-left">View Details of parity check!</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-warning">
+                        <div class="panel-heading">
+                            Ranking Facts Summary
+                        </div>
+                        <div class="panel-body">
+                            <p>stable for top 10 <strong red>unstable for later ranks</strong></p>
+                            <p>10th position has the highest score. Your position is at 40th.</p>
+                        </div>
+                        <div class="panel-footer">
+                            <button id="generate_stability" onClick="window.location.reload()" type="button"
+                                    class="btn btn-default">Generate stability graph
+                            </button>
+                        </div>
+                        <div id="stability_div" class="col-lg-12">
+                            <div id="stability_scatter" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    jQuery(document).ready(function () {
+        jQuery('#stability_scatter').live('click', function (event) {
+            jQuery('#stability_div').toggle('show');
+
+            var chartUrl = "{% url 'dataflow:json_nutrition' %}";
+            $.getJSON(chartUrl, function (data) {
+                $('#stability_scatter').highcharts({
+                    chart: {
+                        type: 'scatter',
+                        zoomType: 'xy'
+                    },
+                    title: {
+                        text: 'Stability'
+                    },
+                    subtitle: {
+                        text: 'ranked on publication count'
+                    },
+                    xAxis: {
+                        title: {
+                            enabled: true,
+                            text: 'Position'
+                        },
+                        startOnTick: true,
+                        endOnTick: true,
+                        showLastLabel: true
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Score'
+                        }
+                    },
+                    legend: {
+                        layout: 'vertical',
+                        align: 'left',
+                        verticalAlign: 'top',
+                        x: 100,
+                        y: 70,
+                        floating: true,
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
+                        borderWidth: 1
+                    },
+                    plotOptions: {
+                        scatter: {
+                            marker: {
+                                radius: 5,
+                                states: {
+                                    hover: {
+                                        enabled: true,
+                                        lineColor: 'rgb(100,100,100)'
+                                    }
+                                }
+                            },
+                            states: {
+                                hover: {
+                                    marker: {
+                                        enabled: false
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                headerFormat: '<b>{series.name}</b><br>',
+                                pointFormat: 'Ranked at {point.x} , with score {point.y} '
+                            }
+                        }
+                    },
+                    series: [{
+                        name: 'publication',
+                        color: 'rgba(223, 83, 83, .5)',
+                        data: data["scatters"]["datapoint"]
+                    }]
+                });
+            });
+
+
+        });
+    });
+
+
+</script>
+
+
+<style>
+    .page {
+        padding-top: 5%;
+    }
+
+    .outer_pic {
+        background-color: #ffffcc;
+        margin: auto;
+        width: 80%;
+        border: 3px solid black;
+        padding: 10px;
+
+    }
+</style>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="{% static 'metisMenu/metisMenu.min.js' %}"></script>
+
+<!-- Morris Charts JavaScript -->
+<script src="{% static 'raphael/raphael.min.js' %}"></script>
+<script src="{% static 'morrisjs/morris.min.js' %}"></script>
+<script src="{% static 'morrisjs/morris-data.js' %}"></script>
+
+<!-- Flot Charts JavaScript -->
+<script src="{% static 'flot/excanvas.min.js' %}"></script>
+<script src="{% static 'flot/jquery.flot.js' %}"></script>
+<script src="{% static 'flot/jquery.flot.pie.js' %}"></script>
+<script src="{% static 'flot/jquery.flot.resize.js' %}"></script>
+<script src="{% static 'flot/jquery.flot.time.js' %}"></script>
+<script src="{% static 'flot-tooltip/jquery.flot.tooltip.min.js' %}"></script>
+<script src="{% static 'flot/flot-data.js' %}"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="{% static 'sbadmin/js/sb-admin-2.js' %}"></script>
+
+</body>

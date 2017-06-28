@@ -1,0 +1,86 @@
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DataResponsibly">
+    <meta name="author" content="Drexel database group">
+
+    <title>Data Responsibly</title>
+    <meta name="description" content="DataResponsibly is a project that aims to make data management responsible.">
+
+    <!-- CSS -->
+    <link href="{% static 'bootstrap/css/bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'others/css/fileinput.min.css' %}" rel="stylesheet">
+    <link href="{% static 'others/css/landing-page.css' %}" rel="stylesheet">
+    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet"
+          type="text/css">
+    <link href="{% static 'datatables/media/css/jquery.dataTables.css' %}" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="intro-header">
+    <div class="container">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="intro-message">
+                    <h1>Ranking Facts</h1>
+                    <hr class="intro-divider">
+                    <form id="file_upload" action="{% url 'dataflow:base_data' %}" method="post"
+                          enctype="multipart/form-data">{% csrf_token %}
+                        <div><input type="file" class="filestyle" data-icon="false" name="csv_file"></div>
+                        <input id="upload_btn" class="btn btn-default btn-lg top-buffer" aria-haspopup="true"
+                               aria-expanded="false" type="submit" value="Upload"/>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- FOOTER -->
+    <div class="footer_div">
+        <div class="container_footer">
+            <footer class="main_footer">
+                <p class="text-muted">
+                    &copy; 2017 DataResponsibly by <a href="https://www.cs.drexel.edu/dbgroup/">Drexel database
+                    group</a>
+                    | <a href="https://www.dagstuhl.de/en/program/calendar/semhp/?semnr=16291">About</a>
+                    | <a href="https://www.cs.drexel.edu/dbgroup/">Contact Us</a>
+                </p>
+            </footer>
+        </div>
+    </div>
+
+</div>
+
+<style>
+
+    .main_footer {
+        background: inherit;
+    }
+
+    .container_footer {
+        display: flex;
+        justify-content: center;
+    }
+
+</style>
+
+
+<!-- JavaScript -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'datatables/media/js/jquery.dataTables.js' %}"></script>
+<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'others/js/bootstrap-filestyle.min.js' %}"></script>
+<script src="{% static 'others/js/fileinput.min.js' %}"></script>
+
+</body>
+</html>

@@ -1,0 +1,290 @@
+{% load static %}
+<head>
+    <!-- Bootstrap Core CSS -->
+    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="{% static 'metisMenu/metisMenu.min.css' %}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'sbadmin/css/sb-admin-2.css' %}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+
+    <link href="{% static 'others/css/landing-page.css' %}" rel="stylesheet">
+
+    <!-- jQuery -->
+    <script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
+    <!-- Highcharts JavaScript -->
+    <script src="{% static 'highcharts/code/highcharts.js' %}"></script>
+    <script src="{% static 'highcharts/code/modules/heatmap.js' %}"></script>
+    <script src="{% static 'highcharts/code/modules/exporting.js' %}"></script>
+    <script src="https://code.highcharts.com/modules/gray.js"></script>
+
+</head>
+
+<body>
+<div id="wrapper">
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand"><h3>Synthetic Data</h3></a>
+        </div>
+        <!-- /.navbar-header -->
+
+        <ul class="nav navbar-top-links navbar-right">
+            <div>
+                <img src="{% static 'images/header_logo_grey_small.jpg' %}" class="img-responsive"
+                     style="padding-top: 5px">
+            </div>
+        </ul>
+        <!-- /.navbar-top-links -->
+
+        <div class="navbar-default sidebar" role="navigation">
+            <div class="sidebar-nav navbar-collapse">
+                <ul class="nav" id="side-menu">
+                    <li>
+                        <a href="{% url 'synthesizer:synthesizer_display' %}"><i class="fa fa-table fa-fw"></i>
+                            Data Comparison</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'synthesizer:com_histogram' %}"><i class="fa fa-bar-chart-o fa-fw"></i>
+                            Histogram Comparison </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'synthesizer:com_hitmap' %}"><i class="fa fa-bar-chart-o fa-fw"></i>
+                            Heatmap Comparison</a>
+                    </li>
+                    <br><br><br>
+                    <li>
+                        <a id="download_data" href="{{ MEDIA_URL }}{{ passed_download_data }}" download="{{ passed_download_data }}"
+                           class="btn btn-outline btn-success">Download synthetic data</a>
+                    </li>
+                    <br>
+                    <li>
+                        <a id="download_desp" href="{{ MEDIA_URL }}{{ passed_download_desp }}" download="{{ passed_download_desp }}"
+                           class="btn btn-outline btn-success">Download dataset description</a>
+                    </li>
+                    <img id="res_dt_logo" src="{% static 'images/DataSynthesizer_Logo.png' %}" class="img-responsive">
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-static-side -->
+    </nav>
+
+
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">Comparison by heatmap ({{ mode_name }})</h1>
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">Description</h4>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <p>Heatmap shows pair-wise correlations between the attributes.</p>
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h5 class="panel-title"> Original data</h5>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <div id="heatmap_before" style="height: 400px; min-width: 310px; max-width: 800px;
+                            margin: 0 auto"></div>
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+            <div class="col-lg-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h5 class="panel-title"> Synthetic data</h5>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <div id="heatmap_after" style="height: 400px; min-width: 310px; max-width: 800px;
+                            margin: 0 auto"></div>
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="form-inline" align="center">
+                            <a href="{% url 'synthesizer:proc_data_dash' %}" class="btn btn-default">Previous step
+                                (Parameter settings)</a>
+                            <a href="{% url 'synthesizer:index' %}" class="btn btn-default">Upload new dataset</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /#page-wrapper -->
+</div>
+<!-- /#wrapper -->
+
+<script>
+    var cols_header = {{passed_column_name | safe}};
+    var chartUrl = "{% url 'synthesizer:res_json_processing_plot' %}";
+    $(document).ready(function () {
+        $.getJSON(chartUrl, function (data) {
+            Highcharts.chart('heatmap_before', {
+
+                chart: {
+                    type: 'heatmap',
+                    marginTop: 40,
+                    marginBottom: 80,
+                    plotBorderWidth: 1
+                },
+
+
+                title: {
+                    text: 'Pairwise Correlations'
+                },
+
+                xAxis: {
+                    categories: cols_header,
+                },
+
+                yAxis: {
+                    categories: cols_header,
+                    title: null
+                },
+
+                colorAxis: {
+                    stops: [
+                        [0, '#3060cf'],
+                        [0.5, '#fffbbc'],
+                        [1, '#c4463a']
+                    ]
+                },
+
+                legend: {
+                    align: 'right',
+                    layout: 'vertical',
+                    margin: 0,
+                    verticalAlign: 'top',
+                    y: 25,
+                    symbolHeight: 280
+                },
+
+                tooltip: {
+                    formatter: function () {
+                        return this.point.value;
+                    }
+                },
+
+                series: [{
+                    name: 'Sales per employee',
+                    borderWidth: 1,
+                    data: data["heatmap"]["before"],
+                    dataLabels: {
+                        enabled: false,
+                        color: '#000000'
+                    }
+                }]
+
+            });
+            Highcharts.chart('heatmap_after', {
+
+                chart: {
+                    type: 'heatmap',
+                    marginTop: 40,
+                    marginBottom: 80,
+                    plotBorderWidth: 1
+                },
+
+
+                title: {
+                    text: 'Pairwise Correlations'
+                },
+
+                xAxis: {
+                    categories: cols_header,
+                },
+
+                yAxis: {
+                    categories: cols_header,
+                    title: null
+                },
+
+                colorAxis: {
+                    stops: [
+                        [0, '#3060cf'],
+                        [0.5, '#fffbbc'],
+                        [1, '#c4463a']
+                    ]
+                },
+
+                legend: {
+                    align: 'right',
+                    layout: 'vertical',
+                    margin: 0,
+                    verticalAlign: 'top',
+                    y: 25,
+                    symbolHeight: 280
+                },
+
+                tooltip: {
+                    formatter: function () {
+                        return this.point.value;
+                    }
+                },
+
+                series: [{
+                    name: 'Sales per employee',
+                    borderWidth: 1,
+                    data: data["heatmap"]["after"],
+                    dataLabels: {
+                        enabled: false,
+                        color: '#000000'
+                    }
+                }]
+
+            });
+        });
+    });
+
+
+</script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="{% static 'metisMenu/metisMenu.min.js' %}"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="{% static 'sbadmin/js/sb-admin-2.js' %}"></script>
+
+</body>

@@ -3,3 +3,8 @@
 *.pyc
 **/__pycache__/
 **/.ipynb_checkpoints/
+
+
+webUI/media/*.json
+webUI/media/*.csv
+

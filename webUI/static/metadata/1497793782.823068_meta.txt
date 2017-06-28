@@ -1,0 +1,1 @@
+{'passed_data_name': './static/intermediatedata/1497793782.823068', 'passed_json_columns': [{'data': 'CSRankingAllArea'}, {'data': 'College Name'}, {'data': 'PubCount'}, {'data': 'Faculty'}, {'data': 'GRE'}, {'data': 'Score'}], 'passed_column_name': ['CSRankingAllArea', 'College Name', 'PubCount', 'Faculty', 'GRE', 'Score']}

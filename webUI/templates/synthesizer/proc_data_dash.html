@@ -1,0 +1,458 @@
+{% load static %}
+<head>
+    <!-- Bootstrap Core CSS -->
+    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="{% static 'metisMenu/metisMenu.min.css' %}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'sbadmin/css/sb-admin-2.css' %}" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="{% static 'morrisjs/morris.css' %}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- jQuery -->
+    <script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
+
+    <link href="{% static 'datatables/media/css/jquery.dataTables.css' %}" rel="stylesheet">
+    <link href="{% static 'others/css/landing-page.css' %}" rel="stylesheet">
+    <script src="{% static 'datatables/media/js/jquery.dataTables.js' %}"></script>
+    <!-- Highcharts JavaScript -->
+    <script src="{% static 'highcharts/code/highcharts.js' %}"></script>
+    <script src="{% static 'highcharts/code/modules/exporting.js' %}"></script>
+    <script src="https://code.highcharts.com/modules/gray.js"></script>
+
+</head>
+
+<body>
+
+<div id="wrapper">
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand"><h3>Parameter Settings</h3></a>
+        </div>
+        <!-- /.navbar-header -->
+
+        <ul class="nav navbar-top-links navbar-right">
+            <div>
+                <img src="{% static 'images/rsz_header_logo.png' %}" class="img-responsive"
+                     style="padding-top: 5px; padding-right: 20px">
+            </div>
+        </ul>
+        <div class="navbar-default sidebar" role="navigation">
+            <div class="sidebar-nav navbar-collapse">
+                <ul class="nav" id="side-menu">
+                    <img id="para_dt_logo" src="{% static 'images/DataSynthesizer_Logo.png' %}" class="img-responsive">
+                </ul>
+            </div>
+            <!-- /.sidebar-collapse -->
+        </div>
+        <!-- /.navbar-static-side -->
+    </nav>
+    <!-- /.navbar-top-links -->
+    <div id="page-wrapper">
+        <div class="row"><br></div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            Uploaded data (top 100 rows)
+                        </h4>
+                    </div>
+                    <div class="panel-body">
+                        <table id="proc_data_table" class="display">
+                            <thead>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <form role="form" action="{% url 'synthesizer:com_data' %}" onsubmit="return validateInput()"
+                      method="post">{% csrf_token %}
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                Parameters setup
+                            </h4>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label>Generate synthetic data in </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="optionsRadiosInline" id="mode1" value="random_mode">
+                                    Random
+                                    mode
+                                </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="optionsRadiosInline" id="mode2" value="indeprendent_mode">
+                                    Independent attribute mode
+                                </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="optionsRadiosInline" id="mode3" value="correlate_mode">
+                                    Correlated attribute mode
+                                </label>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div id="mode1_div" style="display:none">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h5 class="panel-title">
+                                                    Input random mode parameters
+                                                </h5>
+                                            </div>
+                                            <div class="panel-body">
+                                                <div class="form-group" id="cat_att_checkboxes_m1">
+                                                    <label>Choose categorical attributes: </label>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> N = </label>
+                                                    <input name="tuple_N_m1" class="form-control"
+                                                           placeholder="{{ tuple_n | safe }}">
+                                                    <p class="help-block"> Number of output rows.</p>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> Seed = </label>
+                                                    <input name="seed_m1" class="form-control"
+                                                           placeholder="0">
+                                                    <p class="help-block"> Seed of the random number generator. The same
+                                                        seed value will always generate the same results.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div id="mode2_div" style="display:none">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h5 class="panel-title">
+                                                    Input independent mode parameters
+                                                </h5>
+                                            </div>
+                                            <div class="panel-body">
+                                                <div class="form-group" id="cat_att_checkboxes_m2">
+                                                    <label>Choose categorical attributes: </label>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> N = </label>
+                                                    <input name="tuple_N_m2" class="form-control"
+                                                           placeholder="{{ tuple_n | safe }}">
+                                                    <p class="help-block"> Number of output rows.</p>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> Histogram size </label>
+                                                    <input name="hist_size_m2" class="form-control" placeholder="20">
+                                                    <p class="help-block"> Number of histogram bins for numerical attributes.</p>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> Epsilon </label>
+                                                    <input name="epsilon_m2" class="form-control" placeholder="0.1">
+                                                    <p class="help-block"> Noise parameter in differential privacy. Must have a
+                                                        positive value. Lower values correspond to less noise.</p>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> Seed = </label>
+                                                    <input name="seed_m2" class="form-control"
+                                                           placeholder="0">
+                                                    <p class="help-block"> Seed the randomness state to generate
+                                                        predictable results.</p>
+                                                </div>
+                                                <div class="form-group" id="att_type_m2">
+                                                    <label>Select data type for each attribute: </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div id="mode3_div" style="display:none">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h5 class="panel-title">
+                                                    Input correlated mode parameters
+                                                </h5>
+                                            </div>
+                                            <div class="panel-body">
+                                                <div class="form-group" id="cat_att_checkboxes_m3">
+                                                    <label>Choose all categorical attributes: </label>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> N = </label>
+                                                    <input name="tuple_N_m3" class="form-control"
+                                                           placeholder="{{ tuple_n | safe }}">
+                                                    <p class="help-block"> Number of output rows.</p>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> Histogram size </label>
+                                                    <input name="hist_size_m3" class="form-control" placeholder="20">
+                                                    <p class="help-block"> Number of histogram bins for numerical attributes.</p>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> Epsilon </label>
+                                                    <input name="epsilon_m3" class="form-control" placeholder="0.1">
+                                                    <p class="help-block"> Noise parameter in differential privacy. Must
+                                                        have a positive value. Lower values correspond to less
+                                                        noise.</p>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> Maximum degree in the Bayesian
+                                                        network </label>
+                                                    <input name="max_degree" class="form-control" placeholder="3">
+                                                    <p class="help-block"> The maximum number of parents of a random
+                                                        variable node in a Bayesian network.</p>
+                                                </div>
+                                                <div class="form-inline">
+                                                    <label class="mr-sm-2"> Seed = </label>
+                                                    <input name="seed_m3" class="form-control"
+                                                           placeholder="0">
+                                                    <p class="help-block"> Seed of the random number generator. The same
+                                                        seed value will always generate the same results.</p>
+                                                </div>
+                                                <div class="form-group" id="att_type_m3">
+                                                    <label>Select data type for each attribute: </label>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /#mode3-div -->
+                                </div>
+                                <!-- col-lg-12 -->
+                            </div>
+                            <!-- /row -->
+                        </div>
+                        <input type="text" id="mode_flag" name="chose_mode" style="display:none"></input>
+                        <div class="panel-footer">
+                            <div class="form-inline" align="center">
+                                <a href="{% url 'synthesizer:index' %}" class="btn btn-default">Previous step (Upload
+                                    data)</a>
+                                <button type="submit" class="btn btn-default">Next step (Generate synthetic data)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /#panel-info -->
+                </form>
+            </div>
+            <!-- /#col-12 -->
+        </div>
+        <!-- /#row -->
+    </div>
+</div>
+<!-- /#wrapper -->
+<script>
+    //for validation check
+    function validateInput() {
+        if (!$("input[name='optionsRadiosInline']:checked").val()) {
+            alert('You need to choose one mode to enter the parameters!');
+            return false;
+        }
+
+    }
+
+
+</script>
+
+<script type="text/javascript" language="javascript">
+    $(document).ready(function () {
+        $('input[type="radio"]').click(function () {
+            if ($(this).attr('id') == 'mode1') {
+                $('#mode1_div').show();
+                document.getElementById("mode_flag").value = "mode1";
+            }
+
+            else {
+                $('#mode1_div').hide();
+            }
+            if ($(this).attr('id') == 'mode2') {
+                $('#mode2_div').show();
+                document.getElementById("mode_flag").value = "mode2";
+            }
+
+            else {
+                $('#mode2_div').hide();
+            }
+            if ($(this).attr('id') == 'mode3') {
+                $('#mode3_div').show();
+                document.getElementById("mode_flag").value = "mode3";
+            }
+
+            else {
+                $('#mode3_div').hide();
+            }
+        });
+    });
+
+</script>
+
+
+<script type="text/javascript" language="javascript">
+    // get column names, detected categorical attributes and detected data type for each attribute
+    var table_header = {{passed_column_name | safe}};
+    var cate_atts =
+        {{ passed_cat_atts | safe }};
+    var data_type_atts =
+        {{ passed_att_types | safe }};
+
+    // create checkboxes and check the corresponding box by detected categorical attributes
+    for (i in table_header) {
+        if (cate_atts.includes(table_header[i])) {
+            $('#cat_att_checkboxes_m1').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="checks_m1" type="checkbox" checked="checked" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        } else {
+            $('#cat_att_checkboxes_m1').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="checks_m1" type="checkbox" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        }
+
+    }
+
+    for (i in table_header) {
+        if (cate_atts.includes(table_header[i])) {
+            $('#cat_att_checkboxes_m2').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="checks_m2" type="checkbox" checked="checked" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        } else {
+            $('#cat_att_checkboxes_m2').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="checks_m2" type="checkbox" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        }
+    }
+
+
+    for (i in table_header) {
+        if (cate_atts.includes(table_header[i])) {
+            $('#cat_att_checkboxes_m3').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="checks_m3" type="checkbox" checked="checked" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        } else {
+            $('#cat_att_checkboxes_m3').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="checks_m3" type="checkbox" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        }
+    }
+
+
+    // create selects and set the detected attribute type as default value for m2 and m3
+    var select_default = '<option value="integer">integer</option><option value="float">float</option><option value="datetime">datetime</option><option value="string">string</option>';
+
+    var count_col_m2 = 0;
+    $('#att_type_m2').append('<div class="row">');
+
+    for (i in table_header) {
+        // based on the detected type of attribute, then disable some options.
+        var current_att_type = data_type_atts[i];
+        var select_custo = "";
+
+        if (current_att_type == "string") {
+            var disabled_str = select_default.replace('<option value="integer">', '<option value="integer" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="float">', '<option value="float" disabled>');
+            temp_disable_2 = temp_disable_1.replace('<option value="datetime">', '<option value="datetime" disabled>');
+            select_custo = temp_disable_2.replace('<option value="string">', '<option selected value="string">');
+        }
+        if (current_att_type == "integer") {
+            var disabled_str = select_default.replace('<option value="datetime">', '<option value="datetime" disabled>');
+            select_custo = disabled_str.replace('<option value="integer">', '<option selected value="integer">');
+        }
+
+        if (current_att_type == "float") {
+            var disabled_str = select_default.replace('<option value="datetime">', '<option value="datetime" disabled>');
+            select_custo = disabled_str.replace('<option value="float">', '<option selected value="float">');
+        }
+        if (current_att_type == "datetime") {
+            var disabled_str = select_default.replace('<option value="integer">', '<option value="integer" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="float">', '<option value="float" disabled>');
+            select_custo = temp_disable_1.replace('<option value="datetime">', '<option selected value="datetime">');
+        }
+
+        $('#att_type_m2').append('<div class="col-xs-3"><div class="form-group"><label for="example-text-input" class="col-2 col-form-label">' + table_header[i] + '</label> <select name="' + table_header[i] + '_m2" class="selectpicker form-control" data-width="auto">' + select_custo + '</select></div></div>');
+        count_col_m2 = count_col_m2 + 1;
+
+        if (count_col_m2 % 4 == 0 && count_col_m2 != table_header.length) {
+            $('#att_type_m2').append('</div><div class="row">');
+        }
+
+
+    }
+    $('#att_type_m2').append('</div>');
+
+
+    var count_col_m3 = 0;
+    $('#att_type_m3').append('<div class="row">');
+    for (i in table_header) {
+        // based on the detected type of attribute, then disable some options.
+        var current_att_type = data_type_atts[i];
+        var select_custo = "";
+
+        if (current_att_type == "string") {
+            var disabled_str = select_default.replace('<option value="integer">', '<option value="integer" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="float">', '<option value="float" disabled>');
+            temp_disable_2 = temp_disable_1.replace('<option value="datetime">', '<option value="datetime" disabled>');
+            select_custo = temp_disable_2.replace('<option value="string">', '<option value="string" selected>');
+        }
+        if (current_att_type == "integer") {
+            var disabled_str = select_default.replace('<option value="datetime">', '<option value="datetime" disabled>');
+            select_custo = disabled_str.replace('<option value="integer">', '<option value="integer" selected>');
+        }
+        if (current_att_type == "float") {
+            var disabled_str = select_default.replace('<option value="datetime">', '<option value="datetime" disabled>');
+            select_custo = disabled_str.replace('<option value="float">', '<option value="float" selected>');
+        }
+        if (current_att_type == "datetime") {
+            var disabled_str = select_default.replace('<option value="integer">', '<option value="integer" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="float">', '<option value="float" disabled>');
+            select_custo = temp_disable_1.replace('<option value="datetime">', '<option value="datetime" selected>');
+        }
+
+        $('#att_type_m3').append('<div class="col-xs-3"><div class="form-group"><label for="example-text-input" class="col-2 col-form-label">' + table_header[i] + '</label> <select name="' + table_header[i] + '_m3" class="selectpicker form-control" data-width="auto">' + select_custo + '</select></div></div>');
+        count_col_m3 = count_col_m3 + 1;
+
+        if (count_col_m3 % 4 == 0 && count_col_m3 != table_header.length) {
+            $('#att_type_m3').append('</div><div class="row">');
+        }
+    }
+    ;
+    $('#att_type_m3').append('</div>');
+
+    // create data table by request a json data
+    $('#proc_data_table > thead').append('<tr>');
+    for (i in table_header) {
+        $('#proc_data_table > thead').append('<th>' + table_header[i] + '</th>');
+    }
+
+    $('#proc_data_table > thead').append('</td>');
+
+    $(document).ready(function () {
+        $('#proc_data_table').dataTable({
+            "ajax": {
+                "url": "{% url 'synthesizer:proc_json_processing' %}",
+                "dataSrc": ""
+            },
+            "columns": {{passed_json_columns | safe}}
+        });
+    });
+
+</script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="{% static 'metisMenu/metisMenu.min.js' %}"></script>
+
+
+<!-- Custom Theme JavaScript -->
+<script src="{% static 'sbadmin/js/sb-admin-2.js' %}"></script>
+
+</body>

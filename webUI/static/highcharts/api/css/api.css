@@ -1,0 +1,969 @@
+/*
+	 Mobile first
+	  _________
+	 | _______ |
+	 ||       ||
+	 ||       ||
+	 ||       ||
+	 ||       ||
+	 ||_______||
+	 |____O____|
+*/
+
+.clearfix {
+    clear: both;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+.container {
+    width: auto;
+    padding: 30px;
+    margin: auto;
+}
+
+* {
+    font-family: 'Source Sans Pro', sans-serif;
+}
+
+body {
+    margin: 0;
+    background-color: #3A3A4F;
+    font-size: 1em;
+    overflow-x: hidden;
+}
+
+h3 {
+    text-transform: uppercase;
+    margin-bottom: 3px;
+}
+
+p {
+    margin: 0 0 1em 0;
+}
+
+a {
+    color: #8085e8;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    color: #90ee7e;
+}
+
+#nav a.dump {
+    padding: 0px;
+    margin: 0px;
+}
+
+/*
+==========
+=== Header
+==========
+*/
+#top {
+    position: fixed;
+    width: 100%;
+    z-index: 99999999;
+    top: 0;
+}
+
+#top .container {
+    padding: 0;
+}
+
+#top h1 {
+    color: #eeeaea;
+    font-weight: 300;
+    margin: 0;
+    font-size: 15px;
+}
+
+#top .container {
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+#top .container.top {
+    background: #47475C;
+    height: 50px;
+}
+
+#top .container.bottom {
+    background: #373648;
+    padding: 0 15px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: normal;
+    height: 37px;
+}
+
+#top .container.bottom a {
+    font-weight: normal;
+}
+
+#top .container.bottom .menu {
+    height: 37px;
+    line-height: 37px;
+}
+
+#top .container.top .cell {
+    vertical-align: middle;
+    display: inline-block;
+    height: 50px;
+}
+
+#top a.hilighted {
+    background: none;
+}
+
+#sidebar-nav-link {
+    width: 50px;
+    height: 50px;
+    left: 0;
+    transition: left 0.2s ease;
+    display: block;
+    text-align: center;
+    margin: 0;
+}
+
+#top .container a {
+    color: #eeeaea;
+}
+
+#top .container a:hover {
+    color: #90ee7e;
+}
+
+#sidebar-nav-link i {
+    font-size: 30px;
+    line-height: 50px;
+}
+
+#logo {
+    display: inline-block;
+    height: 50px;
+    width: auto;
+    margin: 0 -20px;
+}
+
+#logo img {
+    height: 150%;
+    margin-top: -7px;
+    width: auto;
+}
+
+#top .container.top .cell.page-title {
+    line-height: 50px;
+    float: right;
+    padding: 5px 15px 0 15px;
+}
+
+#top .container.bottom .menu {
+    display: inline-block;
+}
+
+.dropdown-link {
+    font-size: 14px;
+    display: block;
+}
+
+.dropdown-link i {
+    font-size: 0.8em;
+    transition: all 0.1s ease;
+    margin-left: 7px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    background: #373648;
+    list-style: none;
+    z-index: 999999999;
+    display: block;
+    min-width: 100px;
+    margin: -1px 2px 2px -1px;
+    padding: 5px 0;
+    border: 1px solid rgba(0, 0, 0, .15);
+    font-size: 14px;
+}
+
+.dropdown-menu li a {
+    padding: 10px 20px;
+    display: block;
+    line-height: 20px;
+}
+
+#top .container .dropdown-menu li a {
+    color: #a09fb4
+}
+
+#top .container .dropdown-menu li.current a {
+    font-weight: bold;
+    color: #eeeaea;
+}
+
+#top .container .dropdown-menu li.current a:hover {
+    color: #90ee7e;
+}
+
+#top .container .dropdown-menu li.current a,
+#top .container .dropdown-menu li a:hover {
+    color: #eeeaea;
+}
+
+.dropdown-menu[expanded="false"] {
+    display: none;
+}
+
+.dropdown-link[expanded="true"] i {
+    transform: rotate(90deg);
+}
+
+#prog-lang-selector {
+    float: right;
+}
+
+#prog-lang-selector-list a.unavailable-prog-lang {
+    text-decoration: line-through;
+    cursor: default;
+}
+
+/* Search bar */
+#search-div {
+    color: #252530;
+    display: block;
+    margin: 30px;
+    border: 1px solid #252530;
+}
+
+div#search-div i {
+    margin: 5px;
+    color: #252530;
+    font-size: 14px;
+}
+
+input#search {
+    height: 18px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9em;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: #252530;
+    width: 80%;
+}
+
+.ui-autocomplete {
+    max-height: 300px;
+    max-width: 275px;
+    overflow-y: auto;
+    overflow-x: auto;
+    z-index: 9999999;
+}
+
+.ui-menu .ui-menu-item {
+    font-size: 14px;
+    zoom: 1;
+    font-family: "Courier New", Courier, monospace;
+}
+
+.ui-widget-content a {
+    color: #222222 /*{fcContent}*/;
+}
+
+/*
+==============
+=== END Header
+==============
+*/
+/*
+==========
+=== Footer
+==========
+*/
+#footer {
+    color: #eeeaea;
+}
+
+#footer .container {
+    padding: 0 10px;
+    height: 30px;
+}
+
+#footer-copy {
+    font-size: 14px;
+    line-height: 18px;
+}
+
+#footer-copy,
+#footer-social {
+    text-align: center;
+    line-height: 30px;
+}
+
+#footer-social a {
+    color: #eeeaea;
+    font-size: 18px;
+    margin-left: 10px;
+}
+
+#footer-social a:hover {
+    color: #90ee7e;
+}
+
+#scrollTop {
+    position: fixed;
+    bottom: 75px;
+    right: 50px;
+    background-color: #90ee7e;
+    padding: 10px;
+    border-radius: 2px;
+    color: white;
+}
+
+#scrollTop:hover {
+    color: black;
+}
+
+/*
+==============
+=== END Footer
+==============
+*/
+
+#reference-loading {
+    margin-top: 300px;
+    text-align: center;
+}
+
+/*
+===========
+=== Wrapper
+===========
+*/
+
+#splashText {
+    padding: 30px;
+}
+
+#splashText h1 {
+    padding: 0;
+    text-align: center;
+}
+
+#splashText.section {
+    border: none;
+}
+
+#splashText img {
+    width: 100%;
+    max-width: 380px;
+}
+
+.nav-section h3 {
+    font-size: 24px;
+    margin-top: 0;
+}
+
+#wrapper {
+    margin-top: 87px;
+    position: relative;
+    height: 100%;
+    background-color: #d6d1d1;
+}
+
+#wrapper .container {
+    padding: 0;
+}
+
+#wrapper-inner {
+    background-color: #ffffff;
+    /*border: 1px solid silver;*/
+}
+
+.tree a {
+    color: #252530;
+}
+
+#nav .tree, #nav .tree * {
+    font-family: "Courier New", Courier, monospace;
+}
+
+#nav .header p {
+    font-weight: normal;
+    color: #666;
+}
+
+#nav h1,
+#details h1 {
+    font-weight: 100;
+    margin-bottom: 1em;
+}
+
+#nav h1 {
+    text-transform: uppercase;
+}
+
+#nav {
+    min-height: 100%;
+    background: #fff;
+    overflow-x: scroll;
+    border-right: 1px solid silver;
+    margin-top: 87px;
+}
+
+#nav .nav-section:last-child {
+    padding-bottom: 87px;
+}
+
+/* Hide right border when sidebar is hidden */
+.sidr.left {
+    left: -261px;
+}
+
+/* Fix bug in Firefox where fixed items do not update position when body moves */
+body.sidr-open #sidebar-nav-link {
+    left: 261px;
+}
+
+#nav-wrap {
+    width: 100%;
+    float: left;
+    overflow: auto;
+}
+
+#nav a, #nav a:visited {
+    font-weight: bold;
+    padding: 0 2px;
+    margin: 1px;
+}
+
+.nav-section {
+    position: relative;
+    padding: 5px;
+}
+
+.nav-section:last-child {
+    border-bottom: none;
+}
+
+#nav .level {
+    margin-left: 13px;
+    display: none;
+}
+
+#nav .level-0 {
+    display: block;
+}
+
+#nav a.level-0 {
+    margin-left: 1em;
+}
+
+#nav .menuitem {
+    position: relative;
+}
+
+#nav .menuitem a {
+    display: inline-block;
+    padding: 5px 0;
+}
+
+#nav .value {
+    color: silver;
+    white-space: nowrap;
+    padding: 5px 0;
+    margin: 1px;
+}
+
+#nav .value-string, #nav .value-color {
+    color: #39A832;
+}
+
+#nav .value-number {
+    color: #297EA8;
+}
+
+a.hilighted {
+    background-color: #eefdec;
+}
+
+#nav .plus {
+    display: block;
+    position: absolute;
+    left: -12px;
+    top: 0;
+    width: 9px;
+    height: 9px;
+    font-family: FontAwesome;
+    color: gray;
+
+}
+
+#nav .collapsed > .plus:before {
+    content: "\f0da";
+}
+
+#nav .expanded > .plus:before {
+    content: "\f0d7";
+}
+
+#nav .dots {
+    padding: 0 4px;
+}
+
+#nav .expanded > .dots {
+    display: none;
+}
+
+#nav .dots.loading {
+    background: url(./../images/ajax-loader.gif) no-repeat center;
+}
+
+#nav .dots.error {
+    color: red;
+    font-weight: bold;
+}
+
+#nav .dots.loading span {
+    visibility: hidden;
+}
+
+#nav code {
+    color: #8085e8;
+    font-weight: bold;
+}
+
+#nav span.typed {
+    margin-left: 15px;
+}
+
+#nav .collapsed span.typed {
+    margin-left: 0;
+}
+
+#nav .collapsed br.typed {
+    display: none;
+}
+
+#methods-and-properties-toc ul {
+    margin-left: 0;
+    padding-left: 1em;
+}
+
+#options-tree, #global-options-tree, #objects-tree {
+    font-size: 0.9em;
+}
+
+code {
+    font-family: "Courier New", Courier, monospace;
+}
+
+pre {
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    padding: 9.5px;
+    margin: 0 0 10px;
+    font-size: 13px;
+    word-break: break-all;
+    word-wrap: break-word;
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: scroll;
+}
+
+#overview {
+    margin-left: 420px;
+}
+
+#details-wrap {
+    float: right;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* Member styling */
+.member {
+    padding: 30px;
+    overflow-y: hidden;
+    position: relative;
+    border-top: 1px solid silver;
+}
+
+.member:first-child {
+    color: green;
+}
+
+.member.deprecated * {
+    color: silver !important;
+}
+
+.member.hilighted {
+    background-color: #eefdec;
+}
+
+.member .title, .member .title a, .member .returnType {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+.member .title a {
+    text-decoration: underline;
+}
+
+.member .title a.noChildren {
+    text-decoration: none;
+    color: #000;
+    font-weight: bold;
+    font-size: 1em;
+}
+
+.member .default {
+    display: none;
+}
+
+.member .since {
+    float: right;
+    font-size: 0.8em;
+}
+
+.member .description {
+    color: #666;
+}
+
+.member .context {
+    padding: 1em 0;
+}
+
+.description code {
+    color: #666;
+    font-weight: normal;
+}
+
+.section .demo, .member .demo,
+.section .see-also, .member .see-also {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.section .demo h4, .member .demo h4,
+.section .see-also h4, .section .see-also h4 {
+    color: #555;
+    font-style: italic;
+    font-size: 0.9em;
+    margin-bottom: 0.5em;
+}
+
+.section h1,
+.section .section-description,
+.section .section-demo {
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+.section h1 {
+    margin-top: 1em;
+    display: inline-block;
+}
+
+.section h1 span {
+    font-family: "Courier New", Courier, monospace;
+    float: left;
+}
+
+.section-description {
+    margin: 0 0 1em 0;
+}
+
+/*gert*/
+.menuitem div {
+    margin-left: 8px;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.tree {
+    padding-left: 24px;
+}
+
+div.edit {
+    float: right
+}
+
+/*edit form*/
+form#optionAttribute td.inp {
+    width: 450px;
+}
+
+form#optionAttribute td input {
+    width: 100%;
+}
+
+form#optionAttribute td textarea {
+    width: 100%;
+}
+
+form#optionAttribute td input[type="checkbox"] {
+    width: 20px;
+}
+
+.pencil {
+    background-image: url(./../images/edit.png);
+}
+
+.remove {
+    background-image: url(./../images/delete.gif);
+}
+
+.add {
+    background-image: url(./../images/add.png);
+}
+
+.copy {
+    background-image: url(./../images/copy.png);
+}
+
+.pencil, .add, .remove, .copy {
+    background-repeat: no-repeat;
+    background-position: center;
+    float: right;
+    position: relative;
+    width: 10px;
+    padding: 8px;
+}
+
+.pencil a, .add a, .remove a, .copy a {
+    text-decoration: none;
+    padding: 5px;
+}
+
+.deprecated, .error {
+    color: red;
+    font-weight: bold;
+}
+
+dl#inhMembers dd a, span.returnType {
+    margin-left: 3px;
+}
+
+/* fix for icons changing containers height, affects updateHeights, javascript function */
+#footer-social i:before {
+    line-height: 1.5;
+}
+
+/* 404-page */
+.page-404 #nav {
+    padding: 30px;
+    text-align: center;
+    margin-top: 50px;
+}
+
+.page-404 .content {
+    display: block;
+    margin: auto;
+    max-width: 700px;
+}
+
+.page-404 .content ul {
+    text-align: left;
+    display: block;
+    margin: 0 auto 15px auto;
+    max-width: 300px;
+}
+
+.page-404 #nav code {
+    text-align: center;
+    color: #666;
+    font-family: monospace;
+    display: inline-block;
+    margin-bottom: 15px;
+    padding: 10px 20px;
+    background: #eee;
+}
+
+.page-404 h1 {
+    text-align: center;
+}
+
+.page-404 #nav a.button-link {
+    display: block;
+    padding: 15px 5px;
+    max-width: 300px;
+    margin: 0 auto 10px auto;
+    text-align: center;
+    border-radius: 5px;
+    background: #8085e8;
+    color: #fff;
+}
+
+.page-404 #nav a.button-link:hover {
+    background: #90ee7e;
+}
+
+/*
+		Scale up
+		   /\
+		  /  \
+		 /    \
+		/      \
+	   /		\
+*/
+
+/*
+==================================================
+=== Fablets / Vertical tablets / Horizontal phones
+==================================================
+*/
+@media screen and (min-width: 550px) {
+    #top h1 {
+        font-size: 20px;
+    }
+
+    #products-link {
+        display: none;
+    }
+
+    #products-list {
+        display: block;
+        border: 0;
+        margin: 0 0 0 -15px;
+        padding: 0;
+        background: none;
+    }
+
+    #products-list {
+        display: block;
+        border: 0;
+        margin: 0 0 0 -15px;
+        padding: 0;
+        background: none;
+    }
+
+    #products-list li {
+        display: inline-block;
+    }
+
+    .ui-autocomplete {
+        max-height: 500px;
+        max-width: 400px;
+    }
+
+    #footer-copy {
+        float: left;
+    }
+
+    #footer-social {
+        float: right;
+    }
+}
+
+/*
+==============================
+=== Larger tablets / Computers
+==============================
+*/
+@media screen and (min-width: 767px) {
+
+    /* Hide the sidebar-link */
+    #sidebar-nav-link {
+        display: none;
+    }
+
+    .sidebar-nav-link {
+        cursor: default;
+        color: #000;
+        font-weight: normal;
+    }
+
+    .sidebar-nav-link:hover {
+        color: #000;
+    }
+
+    /* If sidr sidebar is visible while scaling up,
+    the page breaks. To avoid this, we counteract
+    the effects sidr is having on the body element: */
+    body {
+        left: 0 !important;
+        width: 100% !important;
+    }
+
+    #top .container {
+        padding: 0 15px;
+    }
+
+    #top .container.top .cell.highcharts-logo {
+        width: 25%;
+    }
+
+    #top .container.top .cell.page-title {
+        width: 50%;
+        text-align: center;
+        float: none;
+        padding: 0;
+    }
+
+    /* Make nav and details share width 30/70 */
+    #nav-wrap {
+        width: 30%;
+    }
+
+    #details-wrap {
+        width: 70%;
+    }
+
+    /* Left-align splash page title */
+    #splashText h1 {
+        text-align: left;
+    }
+
+    /* Since sidr hides nav via fixed positioning,
+    we make its position static again */
+    #nav {
+        position: static;
+        width: auto;
+        border-right: 1px solid silver;
+        margin-top: 0;
+    }
+
+    /* Make vertical space between items in nav smaller,
+    as user is likely to have a mouse at this screen size */
+    #nav .menuitem a {
+        padding: 0;
+    }
+
+    .nav-section {
+        padding: 30px;
+    }
+
+    #search-div {
+        margin: 0 0 20px 0;
+    }
+
+    #logo {
+        margin: 0;
+    }
+
+    #logo img {
+        height: 130%;
+    }
+
+    #scrollTop {
+        display: none;
+    }
+
+    .section {
+        padding-top: 25px;
+    }
+
+    .section h1 {
+        margin-top: 0;
+    }
+}

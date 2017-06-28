@@ -1,0 +1,104 @@
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DataResponsibly">
+    <meta name="author" content="Drexel database group">
+
+    <title>Data Responsibly</title>
+    <meta name="description" content="DataResponsibly is a project that aims to make data management responsible.">
+
+    <!-- CSS -->
+    <link href="{% static 'bootstrap/css/bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'others/css/fileinput.min.css' %}" rel="stylesheet">
+    <link href="{% static 'others/css/landing-page.css' %}" rel="stylesheet">
+    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet"
+          type="text/css">
+    <link href="{% static 'datatables/media/css/jquery.dataTables.css' %}" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="intro-header">
+    <div class="container">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="navbar-header">
+                    <div class="navbar-brand navbar-left">
+                        <img id="dt_logo" style="margin-top: -45px;" class="img-responsive"
+                             src="{% static 'images/rsz_datasynthesizer_logo.png' %}">
+                    </div>
+                    <div class="navbar-brand navbar-right">
+                        <img style="margin-top: -7px;" class="img-responsive" src="{% static 'images/rsz_header_logo.png' %}">
+                    </div>
+                    <div class="intro-message">
+                        <h1>Data Synthesizer</h1>
+                        <hr class="intro-divider">
+                        <form id="file_upload" onsubmit="return validateUploadFile()" action="{% url 'synthesizer:index_data' %}" method="post"
+                              enctype="multipart/form-data">{% csrf_token %}
+                            <div><input id="upload_file" type="file" class="filestyle" data-icon="false" name="csv_file"></div>
+                            <br>
+                            <input id="upload_btn" class="btn btn-default btn-lg top-buffer" aria-haspopup="true"
+                                   aria-expanded="false" type="submit" value="Upload"/>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- FOOTER -->
+<div class="footer_div">
+    <div class="container_footer">
+        <footer class="main_footer">
+            <p class="text-muted">
+                &copy; 2017 <a href="https://github.com/DataResponsibly/DataSynthesizer"> Data Synthesizer </a>
+                | <a href="https://dataresponsibly.github.io">Data Responsibly</a>
+                | <a href="https://dataresponsibly.github.io/contact/">Contact Us</a>
+            </p>
+        </footer>
+    </div>
+</div>
+
+<style>
+
+    .main_footer {
+        background: inherit;
+    }
+
+    .container_footer {
+        display: flex;
+        justify-content: center;
+    }
+
+</style>
+
+<script>
+    function validateUploadFile() {
+        if ($('#upload_file').val()) {
+            return true;
+        } else {
+           alert("Upload file first!");
+           return false;
+        }
+    }
+</script>
+
+
+<!-- JavaScript -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'datatables/media/js/jquery.dataTables.js' %}"></script>
+<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'others/js/bootstrap-filestyle.min.js' %}"></script>
+<script src="{% static 'others/js/fileinput.min.js' %}"></script>
+
+</body>
+</html>
