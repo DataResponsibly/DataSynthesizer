@@ -69,10 +69,11 @@ class DataGenerator(object):
             self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].apply(
                 lambda x: self.sample_uniformly_for_attribute(attribute, int(x)))
             if datatype == 'integer':
-                self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].astype(int)
+                self.synthetic_dataset[attribute] = self.synthetic_dataset[~self.synthetic_dataset[attribute].isnull()][
+                    attribute].astype(int)
             elif datatype == 'string' and not_categorical:
-                self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].map(
-                    lambda x: generate_random_string(int(x)))
+                self.synthetic_dataset[attribute] = self.synthetic_dataset[~self.synthetic_dataset[attribute].isnull()][
+                    attribute].map(lambda x: generate_random_string(int(x)))
 
         self.synthetic_dataset = self.synthetic_dataset.loc[:, self.description['meta']['attribute_list']]
 
@@ -115,7 +116,9 @@ class DataGenerator(object):
 
     def sample_uniformly_for_attribute(self, attribute, idx):
         dist = np.array(self.description['attribute_description'][attribute]['distribution_bins']).tolist()
-        if self.description['attribute_description'][attribute]['is_categorical']:
+        if idx == len(dist):
+            return np.nan
+        elif self.description['attribute_description'][attribute]['is_categorical']:
             return dist[idx]
         else:
             dist.append(2 * dist[-1] - dist[-2])

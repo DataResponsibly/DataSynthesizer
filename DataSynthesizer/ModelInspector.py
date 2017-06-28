@@ -25,8 +25,8 @@ class ModelInspector(object):
         is_categorical = self.attribute_description[attribute]['is_categorical']
         datatype = self.attribute_description[attribute]['datatype']
         if datatype in {'integer', 'float'}:
-            ax1.hist(self.private_df[attribute], bins=15, align='left')
-            ax2.hist(self.synthetic_df[attribute], bins=15, align='left')
+            ax1.hist(self.private_df[attribute].dropna(), bins=15, align='left')
+            ax2.hist(self.synthetic_df[attribute].dropna(), bins=15, align='left')
         elif is_categorical:
             dist_priv = self.private_df[attribute].value_counts()
             dist_synt = self.synthetic_df[attribute].value_counts()
