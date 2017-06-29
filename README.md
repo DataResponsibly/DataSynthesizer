@@ -16,7 +16,7 @@ There is a web-based UI in `webUI/`  directory, which is a self-contained Django
 
 ##### Step 1 Install Python 3 and necessary packages
 
-- [Miniconda](http://conda.pydata.org/miniconda.html) is recommended as the Python distribution. It also contains a user-friendly package manager "conda". 
+- [Miniconda](http://conda.pydata.org/miniconda.html) is recommended as the Python distribution. It also contains a user-friendly package manager "conda".  Note that DataSynthesizer is Python 3 based.
 - After installing it on your machine, run `conda install numpy pandas scikit-learn matplotlib seaborn jupyter django`  in terminal to install the packages.
 
 ##### Step 2 Run web-based UI
