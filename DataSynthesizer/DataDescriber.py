@@ -9,21 +9,33 @@ from DataSynthesizer.lib.PrivBayes import greedy_bayes, construct_noisy_conditio
 
 
 # TODO allow users to specify Null values.
+# TODO detect datetime formats.
 class DataDescriber(object):
     """Analyze input dataset, then save the dataset description in a JSON file.
 
-    Attributes:
-        histogram_size: int, number of bins in histograms.
-        threshold_of_categorical_variable: int, categorical variables have no more than "this number" distinct values.
-        attribute_to_datatype: Dict, mappings of {attribute: datatype}, e.g., {"age": "int", "gender": "string"}.
-        attribute_to_is_categorical: Dict, mappings of {attribute: boolean},, e.g., {"gender":True, "age":False}.
-        ignored_attributes_by_BN: List, attributes containing only unique values are ignored in BN construction.
-        dataset_description: Dict, a nested dictionary (equivalent to JSON) recording the mined dataset information.
-        input_dataset: the dataset to be analyzed.
-        bayesian_network: list of [child, [parent,]] in constructed BN.
-        encoded_dataset: DataFrame, a discrete dataset taken as input by PrivBayes in correlated attribute mode.
-        datatypes: Set, the data types supported by DataSynthesizer.
-        numerical_attributes: Set, the datatypes numerical to DataSynthesizer.
+    Attributes
+    ----------
+        histogram_size : int
+            Number of bins in histograms.
+        threshold_of_categorical_variable : int
+            Categorical variables have no more than "this number" distinct values.
+        attribute_to_datatype : dict
+            Mappings of {attribute: datatype}, e.g., {"age": "int", "gender": "string"}.
+        attribute_to_is_categorical : dict
+            Mappings of {attribute: boolean},, e.g., {"gender":True, "age":False}.
+        ignored_attributes_by_BN : list
+            Attributes containing only unique values are ignored in BN construction.
+        dataset_description: dict
+            Nested dictionary (equivalent to JSON) recording the mined dataset information.
+        input_dataset : DataFrame
+            The dataset to be analyzed.
+        bayesian_network : list of [child, [parent,]] in constructed BN.
+        encoded_dataset : DataFrame
+            A discrete dataset taken as input by PrivBayes in correlated attribute mode.
+        datatypes : set
+            The data types supported by DataSynthesizer.
+        numerical_datatypes : set
+            The datatypes which are numerical.
     """
 
     def __init__(self, histogram_size=20, threshold_of_categorical_variable=10):
@@ -35,26 +47,37 @@ class DataDescriber(object):
         self.dataset_description = {}
         self.input_dataset = None
         self.bayesian_network = []
-        self.encoded_dataset = pd.DataFrame()
+        self.encoded_dataset = None
 
         self.datatypes = {'integer', 'float', 'datetime', 'string'}
         self.numerical_datatypes = {'integer', 'float', 'datetime'}
 
-    def describe_dataset_in_random_mode(self, dataset_file, attribute_to_is_categorical={}, seed=0):
+    def describe_dataset_in_random_mode(self,
+                                        dataset_file,
+                                        attribute_to_datatype={},
+                                        attribute_to_is_categorical={},
+                                        seed=0):
         self.describe_dataset_in_independent_attribute_mode(dataset_file,
-                                                            epsilon=0.1,
+                                                            attribute_to_datatype=attribute_to_datatype,
                                                             attribute_to_is_categorical=attribute_to_is_categorical,
                                                             seed=seed)
+        # After running independent attribute mode, 1) make all distributions uniform; 2) set missing rate to zero.
+        for attr in self.dataset_description['attribute_description']:
+            distribution = self.dataset_description['attribute_description'][attr]['distribution_probabilities']
+            uniform_distribution = np.ones_like(distribution)
+            uniform_distribution = utils.normalize_given_distribution(uniform_distribution).tolist()
+            self.dataset_description['attribute_description'][attr]['distribution_probabilities'] = uniform_distribution
+            self.dataset_description['attribute_description'][attr]['missing_rate'] = 0
 
     def describe_dataset_in_independent_attribute_mode(self,
                                                        dataset_file,
                                                        epsilon=0.1,
-                                                       attribute_to_datatype_dict={},
+                                                       attribute_to_datatype={},
                                                        attribute_to_is_categorical={},
                                                        seed=0):
         utils.set_random_seed(seed)
-        self.attribute_to_datatype = dict(attribute_to_datatype_dict)
-        self.attribute_to_is_categorical = attribute_to_is_categorical
+        self.attribute_to_datatype = dict(attribute_to_datatype)
+        self.attribute_to_is_categorical = dict(attribute_to_is_categorical)
         self.read_dataset_from_csv(dataset_file)
         self.get_dataset_meta_info()
         self.infer_attribute_datatypes()
@@ -65,24 +88,31 @@ class DataDescriber(object):
                                                       dataset_file,
                                                       k=0,
                                                       epsilon=0.1,
-                                                      attribute_to_datatype_dict={},
-                                                      attribute_to_is_categorical_dict={},
+                                                      attribute_to_datatype={},
+                                                      attribute_to_is_categorical={},
                                                       seed=0):
         """Generate dataset description using correlated attribute mode.
 
         Users only need to call this function. It packages the rest functions.
 
-        Args:
-            dataset_file: string, directory and file name of the sensitive dataset as input in csv format.
-            k: int, maximum number of parents in BN construction.
-            epsilon: float, a parameter in differential privacy.
-            attribute_to_datatype_dict: Dict, mappings of {attribute: datatype}, e.g., {"age": "int"}.
-            attribute_to_is_categorical_dict: Dict, mappings of {attribute: boolean},, e.g., {"age":False}.
-            seed: int or float, seeding the randomness.
+        Parameters
+        ----------
+            dataset_file : str
+                File name (with directory) of the sensitive dataset as input in csv format.
+            k : int
+                Maximum number of parents in Bayesian network.
+            epsilon : float
+                A parameter in differential privacy.
+            attribute_to_datatype : dict
+                Mappings of {attribute: datatype}, e.g., {"age": "int"}.
+            attribute_to_is_categorical : dict
+                Mappings of {attribute: boolean},, e.g., {"age":False}.
+            seed : int or float
+                Seed the random number generator.
         """
 
-        self.describe_dataset_in_independent_attribute_mode(dataset_file, epsilon, attribute_to_datatype_dict,
-                                                            attribute_to_is_categorical_dict, seed)
+        self.describe_dataset_in_independent_attribute_mode(dataset_file, epsilon, attribute_to_datatype,
+                                                            attribute_to_is_categorical, seed)
         self.encoded_dataset = self.encode_dataset_into_interval_indices()
         self.bayesian_network = greedy_bayes(self.input_dataset[self.encoded_dataset.columns], k, epsilon)
         self.dataset_description['bayesian_network'] = self.bayesian_network
@@ -95,7 +125,7 @@ class DataDescriber(object):
         except (UnicodeDecodeError, NameError):
             self.input_dataset = pd.read_csv(file_name, encoding='latin1')
 
-        # find candidate key attributes or attributes with empty domain.
+        # find attributes whose values are all unique (e.g., ID) or missing (i.e., empty domain).
         for attribute in self.input_dataset:
             if self.input_dataset[attribute].dropna().is_unique:
                 self.ignored_attributes_by_BN.append(attribute)
@@ -106,7 +136,7 @@ class DataDescriber(object):
                                             "attribute_list": self.input_dataset.columns.tolist()}
 
     def infer_attribute_datatypes(self):
-        attributes_with_unspecified_datatype = set(self.input_dataset.columns) - set(self.attribute_to_datatype.keys())
+        attributes_with_unspecified_datatype = set(self.input_dataset.columns) - set(self.attribute_to_datatype)
         numeric_attributes = set(utils.get_numeric_column_list_from_dataframe(self.input_dataset))
         for attr in attributes_with_unspecified_datatype:
             current_column = self.input_dataset[attr].dropna()
@@ -130,8 +160,10 @@ class DataDescriber(object):
     def is_categorical(self, attribute):
         """Detect whether a column is categorical.
 
-        Args:
-            attribute: string, attribute name.
+        Parameters
+        ----------
+            attribute : str
+                Attribute name.
         """
         if attribute in self.attribute_to_is_categorical:
             return self.attribute_to_is_categorical[attribute]
@@ -214,8 +246,10 @@ class DataDescriber(object):
             (4) 1-D distribution
             (5) missing rate
 
-        Args:
-            attribute: str.
+        Parameters
+        ----------
+            attribute : str
+                Attribute name
         """
         self.dataset_description['attribute_description'] = {}
         for attribute in self.input_dataset:
@@ -227,7 +261,7 @@ class DataDescriber(object):
             self.dataset_description['attribute_description'][attribute] = attribute_info
 
     def inject_laplace_noise_into_distribution_per_attribute(self, epsilon=0.1):
-        for attr in self.dataset_description['attribute_description'].keys():
+        for attr in self.dataset_description['attribute_description']:
             distribution = self.dataset_description['attribute_description'][attr]['distribution_probabilities']
             noisy_scale = 1 / (epsilon * self.input_dataset.shape[0])
             laplace_noises = np.random.laplace(0, scale=noisy_scale, size=len(distribution))
@@ -236,16 +270,16 @@ class DataDescriber(object):
             self.dataset_description['attribute_description'][attr]['distribution_probabilities'] = noisy_distribution
 
     def encode_dataset_into_interval_indices(self):
-        """Before constructing noisy distributions, encode dataset into binning indices."""
+        """Before constructing Bayesian network, encode input dataset by binning indices."""
         encoded_dataset = self.input_dataset.copy()
         for attribute in self.input_dataset:
             attribute_info = self.dataset_description['attribute_description'][attribute]
 
             datatype = attribute_info['datatype']
-            is_categorical_attribute = attribute_info['is_categorical']
+            is_categorical = attribute_info['is_categorical']
             bins = attribute_info['distribution_bins']
 
-            if datatype == 'string' and not is_categorical_attribute:
+            if datatype == 'string' and not is_categorical:
                 # non-categorical string attributes are ignored in BN construction.
                 encoded_dataset.drop(attribute, axis=1, inplace=True)
                 self.ignored_attributes_by_BN.append(attribute)
@@ -253,13 +287,13 @@ class DataDescriber(object):
             elif datatype == 'datetime':
                 encoded_dataset[attribute] = encoded_dataset[attribute].map(lambda x: parse(x).timestamp())
 
-            if is_categorical_attribute:
-                encoded_dataset[attribute] = encoded_dataset[~encoded_dataset[attribute].isnull()][
-                    attribute].map(lambda x: bins.index(x))
+            if is_categorical:
+                encoded_dataset[attribute] = encoded_dataset[~encoded_dataset[attribute].isnull()][attribute].map(
+                    lambda x: bins.index(x))
             else:
                 # the intervals are half-open, i.e., [1, 2)
-                encoded_dataset[attribute] = encoded_dataset[~encoded_dataset[attribute].isnull()][
-                    attribute].map(lambda x: bins.index([i for i in bins if i <= x][-1]))
+                encoded_dataset[attribute] = encoded_dataset[~encoded_dataset[attribute].isnull()][attribute].map(
+                    lambda x: bins.index([i for i in bins if i <= x][-1]))
 
             # missing values are replaced with len(bins).
             encoded_dataset[attribute].fillna(value=len(bins), inplace=True)

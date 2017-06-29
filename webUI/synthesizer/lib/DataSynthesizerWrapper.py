@@ -68,7 +68,7 @@ def generate_data(username):
     generator = DataGenerator()
     if configuration['chose_mode'] == 'mode1':
         describer = DataDescriber()
-        describer.describe_dataset_in_random_mode(input_dataset_file, attribute_to_is_categorical, seed)
+        describer.describe_dataset_in_random_mode(input_dataset_file, {}, attribute_to_is_categorical, seed)
         describer.save_dataset_description_to_file(description_file)
         generator.generate_dataset_in_random_mode(n, description_file, seed)
     else:

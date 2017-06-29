@@ -14,6 +14,10 @@ def set_random_seed(seed=0):
 
 
 def is_datetime(date_string):
+    """Find whether a value is of type datetime.
+
+    Here it treats weekdays and months as categorical strings instead of converting them into timestamps.
+    """
     weekdays = [("Mon", "Monday"),
                 ("Tue", "Tuesday"),
                 ("Wed", "Wednesday"),
@@ -47,9 +51,10 @@ def is_datetime(date_string):
 def mutual_information(labels_true, labels_pred):
     """Mutual information of distributions in format of pd.Series or pd.DataFrame.
 
-    Args:
-        labels_true: Series or DataFrame
-        labels_pred: Series or DataFrame
+    Parameters
+    ----------
+        labels_true : Series or DataFrame
+        labels_pred : Series or DataFrame
     """
     if isinstance(labels_true, pd.DataFrame):
         labels_true = labels_true.astype(str).apply(lambda x: ' '.join(x.tolist()), axis=1)

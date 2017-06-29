@@ -11,10 +11,17 @@ from DataSynthesizer.lib.utils import mutual_information, normalize_given_distri
 
 
 def sensitivity(num_tuples):
-    """Sensitivity function for BN construction. PrivBayes Lemma 1.
+    """Sensitivity function for Bayesian network construction. PrivBayes Lemma 1.
 
-    Args:
-        num_tuples: int, number of tuples in dataset.
+    Parameters
+    ----------
+        num_tuples : int
+            Number of tuples in sensitive dataset.
+
+    Return
+    --------
+    int
+        Sensitivity value.
     """
     a = (2 / num_tuples) * log((num_tuples + 1) / 2)
     b = (1 - 1 / num_tuples) * log(1 + 2 / (num_tuples - 1))
@@ -26,10 +33,14 @@ def delta(num_attributes, num_tuples, epsilon):
 
     More info is in PrivBayes Section 4.2 "A First-Cut Solution".
 
-    Args:
-        num_attributes: int, number of attributes in dataset.
-        num_tuples: int, number of tuples in dataset.
-        epsilon: float, parameter of differential privacy.
+    Parameters
+    ----------
+        num_attributes : int
+            Number of attributes in dataset.
+        num_tuples : int
+            Number of tuples in dataset.
+        epsilon : float
+            Parameter of differential privacy.
     """
     return 2 * (num_attributes - 1) * sensitivity(num_tuples) / epsilon
 
@@ -37,12 +48,17 @@ def delta(num_attributes, num_tuples, epsilon):
 def usefulness_minus_target(k, num_attributes, num_tuples, target_usefulness=5, epsilon=0.1):
     """Usefulness function in PrivBayes.
 
-    Args:
-        k: int, max number of degree in Bayesian networks construction
-        num_attributes: int, number of attributes in dataset.
-        num_tuples: int, number of tuples in dataset.
-        target_usefulness: int or float
-        epsilon: float, parameter of differential privacy.
+    Parameters
+    ----------
+        k : int
+            Max number of degree in Bayesian networks construction
+        num_attributes : int
+            Number of attributes in dataset.
+        num_tuples : int
+            Number of tuples in dataset.
+        target_usefulness : int or float
+        epsilon : float
+            Parameter of differential privacy.
     """
     if k == num_attributes:
         print('here')
@@ -75,10 +91,14 @@ def calculate_k(num_attributes, num_tuples, target_usefulness=4, epsilon=0.1):
 def greedy_bayes(dataset, k=0, epsilon=0):
     """Construct a Bayesian Network (BN) using greedy algorithm.
 
-    Args:
-        dataset: DataFrame, input dataset.
-        k: int, maximum degree of the constructed BN. If k=0, k is automatically calculated.
-        epsilon: float, a parameter in definition of differential privacy.
+    Parameters
+    ----------
+        dataset : DataFrame
+            Input dataset.
+        k : int
+            Maximum degree of the constructed BN. If k=0, k is automatically calculated.
+        epsilon : float
+            Parameter of differential privacy.
     """
 
     num_tuples, num_attributes = dataset.shape
@@ -193,7 +213,3 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
                 conditional_distributions[child][str(list(parents_instance))] = dist
 
     return conditional_distributions
-
-
-if __name__ == '__main__':
-    assert (4 > 2)
