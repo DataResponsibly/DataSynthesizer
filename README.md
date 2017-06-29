@@ -12,7 +12,7 @@ Its usage is presented in the following Jupyter Notebooks,
 
 ### Web-based UI
 
-There is a web-based UI is in `webUI/`  directory, which is a self-contained Django project. Here is a simple way to run it on your machine.
+There is a web-based UI in `webUI/`  directory, which is a self-contained Django project. Here is a simple way to run it on your machine.
 
 ##### Step 1 Install Python 3 and necessary packages
 
