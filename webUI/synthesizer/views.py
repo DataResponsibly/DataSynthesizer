@@ -147,7 +147,7 @@ def com_data(request):
     if mode_id == "2":
         mode_name = "Independent Attribute Mode"
     if mode_id == "3":
-        mode_name = "Correlated Attribte Mode"
+        mode_name = "Correlated Attribute Mode"
     request.session["mode_name"] = mode_name
     # save user input parameters to server
     json_parameter_outputfn = passed_data_name + "_parameters.json"
