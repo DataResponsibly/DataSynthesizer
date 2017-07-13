@@ -88,7 +88,7 @@ class DataGenerator(object):
     def generate_encoded_dataset(n, description):
         bn = description['bayesian_network']
         bn_root_attr = bn[0][1][0]
-        root_attr_dist = description['attribute_description'][bn_root_attr]['distribution_probabilities']
+        root_attr_dist = description['conditional_probabilities'][bn_root_attr]
         encoded_df = pd.DataFrame(columns=DataGenerator.get_sampling_order(bn), dtype=int)
         encoded_df[bn_root_attr] = np.random.choice(len(root_attr_dist), size=n, p=root_attr_dist)
 
