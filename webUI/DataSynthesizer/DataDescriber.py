@@ -261,9 +261,10 @@ class DataDescriber(object):
             self.dataset_description['attribute_description'][attribute] = attribute_info
 
     def inject_laplace_noise_into_distribution_per_attribute(self, epsilon=0.1):
+        h = self.input_dataset.columns.size
         for attr in self.dataset_description['attribute_description']:
             distribution = self.dataset_description['attribute_description'][attr]['distribution_probabilities']
-            noisy_scale = 1 / (epsilon * self.input_dataset.shape[0])
+            noisy_scale = h / (epsilon * self.input_dataset.shape[0])
             laplace_noises = np.random.laplace(0, scale=noisy_scale, size=len(distribution))
             noisy_distribution = np.asarray(distribution) + laplace_noises
             noisy_distribution = utils.normalize_given_distribution(noisy_distribution).tolist()
