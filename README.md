@@ -10,6 +10,11 @@ Its usage is presented in the following Jupyter Notebooks,
 - DataSynthesizer Usage (independent attribute mode).ipynb
 - DataSynthesizer Usage (correlated attribute mode).ipynb
 
+### Assumptions for Input Dataset
+
+1. The input dataset is a table in first normal form (1NF).
+2. The active domain is the domain for each attribute of the table. When implementing differential privacy,  DataSynthesizer injects noises into the statistics within active domain.
+
 ### Web-based UI
 
 There is a web-based UI in `webUI/`  directory, which is a self-contained Django project. Here is a simple way to run it on your machine.
