@@ -94,7 +94,7 @@ def greedy_bayes(dataset, k=0, epsilon=0):
     Parameters
     ----------
         dataset : DataFrame
-            Input dataset.
+            Input dataset, which only contains categorical attributes.
         k : int
             Maximum degree of the constructed BN. If k=0, k is automatically calculated.
         epsilon : float
@@ -121,6 +121,7 @@ def greedy_bayes(dataset, k=0, epsilon=0):
             for parents in combinations(V, min(k, len(V))):
                 parents = list(parents)
                 parents_pair_list.append((child, parents))
+                # TODO consider to change the computation of MI by combined integers instead of strings.
                 mi = mutual_information(dataset[child], dataset[parents])
                 mutual_info_list.append(mi)
 
