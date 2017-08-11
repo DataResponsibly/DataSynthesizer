@@ -18,18 +18,17 @@ class DataDescriber(object):
         histogram_size : int
             Number of bins in histograms.
         threshold_of_categorical_variable : int
-            Categorical variables have no more than "this number" distinct values.
+            Categorical variables have no more than "this number" of distinct values.
         attribute_to_datatype : dict
             Mappings of {attribute: datatype}, e.g., {"age": "int", "gender": "string"}.
         attribute_to_is_categorical : dict
-            Mappings of {attribute: boolean},, e.g., {"gender":True, "age":False}.
-        ignored_attributes_by_BN : list
-            Attributes containing only unique values are ignored in BN construction.
+            Mappings of {attribute: boolean}, e.g., {"gender":True, "age":False}.
         dataset_description: dict
             Nested dictionary (equivalent to JSON) recording the mined dataset information.
         input_dataset : DataFrame
             The dataset to be analyzed.
-        bayesian_network : list of [child, [parent,]] in constructed BN.
+        bayesian_network : list
+            List of [child, [parent,]] to represent constructed BN.
         encoded_dataset : DataFrame
             A discrete dataset taken as input by PrivBayes in correlated attribute mode.
         datatypes : set
@@ -43,7 +42,6 @@ class DataDescriber(object):
         self.threshold_of_categorical_variables = threshold_of_categorical_variable
         self.attribute_to_datatype = {}
         self.attribute_to_is_categorical = {}
-        self.ignored_attributes_by_BN = []
         self.dataset_description = {}
         self.input_dataset = None
         self.bayesian_network = []
@@ -114,6 +112,10 @@ class DataDescriber(object):
         self.describe_dataset_in_independent_attribute_mode(dataset_file, epsilon, attribute_to_datatype,
                                                             attribute_to_is_categorical, seed)
         self.encoded_dataset = self.encode_dataset_into_interval_indices()
+        
+        if self.encoded_dataset.columns.size < 2:
+            raise Exception("Current dataset doesn't have enough attributes to build Bayesian network in correlated attribute mode.")
+        
         self.bayesian_network = greedy_bayes(self.input_dataset[self.encoded_dataset.columns], k, epsilon)
         self.dataset_description['bayesian_network'] = self.bayesian_network
         self.dataset_description['conditional_probabilities'] = construct_noisy_conditional_distributions(
@@ -125,10 +127,10 @@ class DataDescriber(object):
         except (UnicodeDecodeError, NameError):
             self.input_dataset = pd.read_csv(file_name, encoding='latin1')
 
-        # find attributes whose values are all unique (e.g., ID) or missing (i.e., empty domain).
-        for attribute in self.input_dataset:
-            if self.input_dataset[attribute].dropna().is_unique:
-                self.ignored_attributes_by_BN.append(attribute)
+        # drop attributes/columns with empty active domain (which only contain missing values).
+        for attr in self.input_dataset.columns.tolist():
+            if self.input_dataset[attr].dropna().empty:
+                self.input_dataset.drop(attr, axis=1, inplace=True)
 
     def get_dataset_meta_info(self):
         self.dataset_description['meta'] = {"num_tuples": self.input_dataset.index.size,
@@ -280,12 +282,13 @@ class DataDescriber(object):
             is_categorical = attribute_info['is_categorical']
             bins = attribute_info['distribution_bins']
 
+            # non-categorical string attributes are ignored by BN.
             if datatype == 'string' and not is_categorical:
-                # non-categorical string attributes are ignored in BN construction.
                 encoded_dataset.drop(attribute, axis=1, inplace=True)
-                self.ignored_attributes_by_BN.append(attribute)
                 continue
-            elif datatype == 'datetime':
+
+            # convert datatime into timestamps
+            if datatype == 'datetime':
                 encoded_dataset[attribute] = encoded_dataset[attribute].map(lambda x: parse(x).timestamp())
 
             if is_categorical:
@@ -299,7 +302,6 @@ class DataDescriber(object):
             # missing values are replaced with len(bins).
             encoded_dataset[attribute].fillna(value=len(bins), inplace=True)
 
-        self.dataset_description['meta']['ignored_attributes_by_BN'] = self.ignored_attributes_by_BN
         return encoded_dataset
 
     def save_dataset_description_to_file(self, file_name):

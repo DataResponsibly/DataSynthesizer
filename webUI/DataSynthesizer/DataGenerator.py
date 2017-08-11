@@ -53,11 +53,12 @@ class DataGenerator(object):
         self.description = read_json_file(description_file)
         self.encoded_dataset = DataGenerator.generate_encoded_dataset(self.n, self.description)
 
-        for attr in self.description['meta']['ignored_attributes_by_BN']:
-            attr_info = self.description['attribute_description'][attr]
-            bins = attr_info['distribution_bins']
-            probs = attr_info['distribution_probabilities']
-            self.encoded_dataset[attr] = np.random.choice(list(range(len(bins))), size=n, p=probs)
+        # # use independent attribute mode for attributes ignored by BN, which are non-categorical strings.
+        # for attr in self.description['meta']['attributes_ignored_by_BN']:
+        #     attr_info = self.description['attribute_description'][attr]
+        #     bins = attr_info['distribution_bins']
+        #     probs = attr_info['distribution_probabilities']
+        #     self.encoded_dataset[attr] = np.random.choice(list(range(len(bins))), size=n, p=probs)
 
         self.sample_from_encoded_dataset()
 
@@ -75,7 +76,8 @@ class DataGenerator(object):
                 self.synthetic_dataset[attribute] = self.synthetic_dataset[~self.synthetic_dataset[attribute].isnull()][
                     attribute].map(lambda x: generate_random_string(int(x)))
 
-        self.synthetic_dataset = self.synthetic_dataset.loc[:, self.description['meta']['attribute_list']]
+        sorted_attributes = [attr for attr in self.description['meta']['attribute_list'] if attr in self.synthetic_dataset]
+        self.synthetic_dataset = self.synthetic_dataset.loc[:, sorted_attributes]
 
     @staticmethod
     def get_sampling_order(bn):
@@ -88,7 +90,7 @@ class DataGenerator(object):
     def generate_encoded_dataset(n, description):
         bn = description['bayesian_network']
         bn_root_attr = bn[0][1][0]
-        root_attr_dist = description['attribute_description'][bn_root_attr]['distribution_probabilities']
+        root_attr_dist = description['conditional_probabilities'][bn_root_attr]
         encoded_df = pd.DataFrame(columns=DataGenerator.get_sampling_order(bn), dtype=int)
         encoded_df[bn_root_attr] = np.random.choice(len(root_attr_dist), size=n, p=root_attr_dist)
 
