@@ -123,9 +123,9 @@ class DataDescriber(object):
 
     def read_dataset_from_csv(self, file_name=None):
         try:
-            self.input_dataset = pd.read_csv(file_name)
+            self.input_dataset = pd.read_csv(file_name, skipinitialspace=True)
         except (UnicodeDecodeError, NameError):
-            self.input_dataset = pd.read_csv(file_name, encoding='latin1')
+            self.input_dataset = pd.read_csv(file_name, skipinitialspace=True, encoding='latin1')
 
         # drop attributes/columns with empty active domain (which only contain missing values).
         for attr in self.input_dataset.columns.tolist():
