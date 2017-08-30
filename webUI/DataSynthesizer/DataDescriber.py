@@ -8,7 +8,6 @@ import DataSynthesizer.lib.utils as utils
 from DataSynthesizer.lib.PrivBayes import greedy_bayes, construct_noisy_conditional_distributions
 
 
-# TODO allow users to specify Null values.
 # TODO detect datetime formats.
 class DataDescriber(object):
     """Analyze input dataset, then save the dataset description in a JSON file.
@@ -19,6 +18,9 @@ class DataDescriber(object):
             Number of bins in histograms.
         threshold_of_categorical_variable : int
             Categorical variables have no more than "this number" of distinct values.
+        null_values: scalar, str, list-like, or dict
+            Additional strings to recognize as NULL. If dict passed, specific per-column NA values.
+            By default the following values are interpreted as NULL: ‘’, ‘NULL’, ‘N/A’, ‘NA’, ‘NaN’, ‘nan’, etc.
         attribute_to_datatype : dict
             Mappings of {attribute: datatype}, e.g., {"age": "int", "gender": "string"}.
         attribute_to_is_categorical : dict
@@ -37,9 +39,10 @@ class DataDescriber(object):
             The datatypes which are numerical.
     """
 
-    def __init__(self, histogram_size=20, threshold_of_categorical_variable=10):
+    def __init__(self, histogram_size=20, threshold_of_categorical_variable=10, null_values=None):
         self.histogram_size = histogram_size
         self.threshold_of_categorical_variables = threshold_of_categorical_variable
+        self.null_values = null_values
         self.attribute_to_datatype = {}
         self.attribute_to_is_categorical = {}
         self.dataset_description = {}
@@ -123,9 +126,9 @@ class DataDescriber(object):
 
     def read_dataset_from_csv(self, file_name=None):
         try:
-            self.input_dataset = pd.read_csv(file_name, skipinitialspace=True)
+            self.input_dataset = pd.read_csv(file_name, skipinitialspace=True, na_values=self.null_values)
         except (UnicodeDecodeError, NameError):
-            self.input_dataset = pd.read_csv(file_name, skipinitialspace=True, encoding='latin1')
+            self.input_dataset = pd.read_csv(file_name, skipinitialspace=True, na_values=self.null_values, encoding='latin1')
 
         # drop attributes/columns with empty active domain (which only contain missing values).
         for attr in self.input_dataset.columns.tolist():
