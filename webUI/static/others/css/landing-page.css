@@ -123,8 +123,14 @@ h6 {
 }
 
 #dt_logo {
-    width: 30%;
-
+    width: 20%;
+    margin: 0;
+    /*margin-top: -10px;*/
+}
+#head_logo {
+    width: 55%;
+    margin: auto;
+    margin-top: -25px;
 }
 
 #para_dt_logo {

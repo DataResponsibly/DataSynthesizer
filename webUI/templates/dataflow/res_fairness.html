@@ -1,0 +1,232 @@
+{% load static %}
+<head>
+    <!-- Bootstrap Core CSS -->
+    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="{% static 'metisMenu/metisMenu.min.css' %}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'sbadmin/css/sb-admin-2.css' %}" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="{% static 'morrisjs/morris.css' %}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- jQuery -->
+    <script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
+    <!-- Highcharts JavaScript -->
+    <script src="{% static 'highcharts/code/highcharts.js' %}"></script>
+    <script src="{% static 'highcharts/code/modules/exporting.js' %}"></script>
+    <script src="https://code.highcharts.com/modules/gray.js"></script>
+
+</head>
+
+<body>
+<div id="wrapper">
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand"><h4>Ranking facts</h4></a>
+        </div>
+        <!-- /.navbar-header -->
+
+        <ul class="nav navbar-top-links navbar-right">
+            <div>
+                <img src="{% static 'images/header_logo_grey_small.jpg' %}" class="img-responsive"
+                     style="padding-top: 5px">
+            </div>
+        </ul>
+        <!-- /.navbar-top-links -->
+
+        <div class="navbar-default sidebar" role="navigation">
+            <div class="sidebar-nav navbar-collapse">
+                <ul class="nav" id="side-menu">
+                    <li>
+                        <a href="{% url 'dataflow:nutrition_facts' %}"><i class="fa fa-dashboard fa-fw"></i> Ranking
+                            Facts</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa fa-wrench fa-fw"></i> Additional results<span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level">
+                            <li>
+                                <a href="{% url 'dataflow:res_personal' %}"><i class="fa fa-table fa-fw"></i> Personal ranking information</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'dataflow:res_fairness' %}"><i class="fa fa-table fa-fw"></i> Fairness in ranking</a>
+                            </li>
+                        </ul>
+                        <!-- /.nav-second-level -->
+                    </li>
+                </ul>
+            </div>
+            <!-- /.sidebar-collapse -->
+        </div>
+        <!-- /.navbar-static-side -->
+    </nav>
+
+
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">Fairness Validation</h1>
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        Specify fairness constraints
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <div class="form-group" id="sensi_checkboxes">
+                            <label>Check all the sensitive attributes</label> &nbsp;&nbsp;
+                            {% for atti in passed_column_name %}
+                            <label class="checkbox-inline">
+                                <input id="{{atti | safe}}_sensi_checks" name="checks_sensi_atts" type="checkbox" value="{{atti | safe}}"> {{ atti }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% for atti in passed_column_name %}
+                        <div id="{{atti | safe}}_constraint" class="form-inline" style="display:none">
+                            <label>Input constraint of {{atti}}</label>
+                            <input id="{{ atti | safe}}_fair_constraint" name="{{ atti | safe}}_fair_constraint" class="form-control" placeholder="80%">
+                            <br><br>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- /.panel-body -->
+                    <div class="panel-footer">
+                        <div class="form-inline" align="center">
+                            <button type="submit" class="btn btn-primary">Run fairness check</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.panel -->
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-yellow">
+                    <div class="panel-heading">
+                        <div class="row">
+                            <div class="col-xs-2">
+                                <i class="fa fa-bell fa-5x"></i>
+                            </div>
+                            <div class="col-xs-5 text-center">
+                                <div class="huge">age</div>
+                                <div><strong red>parity fails</strong></div>
+                            </div>
+                            <div class="col-xs-12 text-right">
+                                <div class="huge">income</div>
+                                <div><strong red>parity fails</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#">
+                        <div class="panel-footer">
+                            <span class="pull-left">View Details of parity check!</span>
+                            <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                            <div class="clearfix"></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- /row -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Race in top 10
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-pie-chart"></div>
+                        </div>
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+            <div class="col-lg-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Race in overall
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-pie-chart2"></div>
+                        </div>
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="form-inline" align="center">
+                            <a href="{% url 'dataflow:data_process' %}" class="btn btn-default">Previous step (Parameter settings)</a>
+                            <a href="{% url 'dataflow:base' %}" class="btn btn-default">Upload new data</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /#page-wrapper -->
+</div>
+<!-- /#wrapper -->
+
+<script type="text/javascript">
+    // show its constraint input when choose sensitive attribute
+    var all_atts = {{passed_column_name | safe}};
+    $(document).ready(function () {
+        $('input[type="checkbox"]').click(function () {
+
+            for (i in all_atts) {
+                if (document.getElementById(all_atts[i]+"_sensi_checks").checked) {
+                    document.getElementById(all_atts[i]+"_constraint").style.display = 'inline';
+                }
+                else {
+                    document.getElementById(all_atts[i]+"_constraint").style.display = 'none';
+                }
+
+
+            }
+
+        });
+    });
+
+</script>
+<!-- Bootstrap Core JavaScript -->
+<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+<!-- Flot Charts JavaScript -->
+<script src="{% static 'flot/excanvas.min.js' %}"></script>
+<script src="{% static 'flot/jquery.flot.js' %}"></script>
+<script src="{% static 'flot/jquery.flot.pie.js' %}"></script>
+<script src="{% static 'flot/jquery.flot.resize.js' %}"></script>
+<script src="{% static 'flot/jquery.flot.time.js' %}"></script>
+<script src="{% static 'flot-tooltip/jquery.flot.tooltip.min.js' %}"></script>
+<script src="{% static 'flot/flot-data.js' %}"></script>
+
+</body>
