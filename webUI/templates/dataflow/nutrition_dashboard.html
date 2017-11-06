@@ -6,6 +6,9 @@
     <!-- MetisMenu CSS -->
     <link href="{% static 'metisMenu/metisMenu.min.css' %}" rel="stylesheet">
 
+    <!-- bootstrap-slider CSS -->
+    <link href="{% static 'bootstrap-slider/css/bootstrap-slider.min.css' %}" rel="stylesheet">
+
     <!-- Custom CSS -->
     <link href="{% static 'sbadmin/css/sb-admin-2.css' %}" rel="stylesheet">
 
@@ -17,6 +20,7 @@
 
     <!-- jQuery -->
     <script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
+
     <!-- Highcharts JavaScript -->
     <script src="{% static 'highcharts/code/highcharts.js' %}"></script>
     <script src="{% static 'highcharts/code/modules/exporting.js' %}"></script>
@@ -35,7 +39,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{% url 'dataflow:nutrition_facts' %}">Nutritional Label</a>
+            <a class="navbar-brand"><h4>Ranking facts</h4></a>
         </div>
         <!-- /.navbar-header -->
 
@@ -50,30 +54,22 @@
         <div class="navbar-default sidebar" role="navigation">
             <div class="sidebar-nav navbar-collapse">
                 <ul class="nav" id="side-menu">
-                    <li class="sidebar-search">
-                        <div class="input-group custom-search-form">
-                            <input type="text" class="form-control" placeholder="Search...">
-                            <span class="input-group-btn">
-                                <button class="btn btn-default" type="button">
-                                    <i class="fa fa-search"></i>
-                                </button>
-                            </span>
-                        </div>
-                        <!-- /input-group -->
-                    </li>
                     <li>
                         <a href="{% url 'dataflow:nutrition_facts' %}"><i class="fa fa-dashboard fa-fw"></i> Ranking
                             Facts</a>
                     </li>
                     <li>
-                        <a href="{% url 'dataflow:res_data_tables' %}"><i class="fa fa-table fa-fw"></i> Data</a>
+                        <a href="#"><i class="fa fa-wrench fa-fw"></i> Additional results<span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level">
+                            <li>
+                                <a href="{% url 'dataflow:res_personal' %}"><i class="fa fa-table fa-fw"></i> Personal ranking information</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'dataflow:res_fairness' %}"><i class="fa fa-table fa-fw"></i> Fairness in ranking</a>
+                            </li>
+                        </ul>
+                        <!-- /.nav-second-level -->
                     </li>
-
-                    <li>
-                        <a href="{% url 'dataflow:stability' %}"><i class="fa fa-table fa-fw"></i> Stability</a>
-                    </li>
-
-
                 </ul>
             </div>
             <!-- /.sidebar-collapse -->
@@ -85,63 +81,91 @@
     <div id="page-wrapper">
         <div class="row">
             <div class="col-lg-12">
-                <h1 class="page-header">Nutrition Facts</h1>
+                <h1 class="page-header">Ranking Facts</h1>
             </div>
             <!-- /.col-lg-12 -->
         </div>
         <!-- /.row -->
         <div class="row">
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-12">
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        Ranking Recipe
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-inline" id="rank_formula">
+                            <label>Score = </label>
+                             {% for atti in chosed_atts %}
+                            &lpar;
+                            <label id="{{atti | safe}}_weight"></label>
+                            &times;
+                            <input class="form-control" id="{{atti | safe}}" disabled>
+                            &rpar;
+                            &plus;
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
                 <div class="panel panel-info">
                     <div class="panel-heading">
-                        Recipe
+                        Score distribution
                     </div>
                     <div class="panel-body">
-                        <p>sort by decreasing income</p>
-                    </div>
-                    <div class="panel-footer">
-                        <strong red>income</strong> correlates with <strong red>age</strong>
+                        <div id="score_scatter" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="panel panel-danger">
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="panel panel-default">
                     <div class="panel-heading">
-                        Your Outcome
+                        Attributes distribution in top 10
                     </div>
+                    <!-- /.panel-heading -->
                     <div class="panel-body">
-                        <h3>rank 45</h3>
+                        <span><br></span>
+                        {% for atti_name, atti_id in passed_choosed_att_zip %}
+                        <div class="form-inline">
+                            <label>{{atti_name}}</label>
+                            <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input id="{{atti_id | safe}}_topTen" type="text"
+                              data-provide="slider" data-slider-tooltip="always" />
+                            <span><br><br><br></span>
+                        </div>
+                        {% endfor %}
                     </div>
-                    <div class="panel-footer">
-                        increase <strong>income</strong> by 20K to move to top-10
-                    </div>
+                    <!-- /.panel-body -->
                 </div>
+                <!-- /.panel -->
             </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="panel panel-yellow">
+            <div class="col-lg-6">
+                <div class="panel panel-default">
                     <div class="panel-heading">
-                        <div class="row">
-                            <div class="col-xs-3">
-                                <i class="fa fa-bell fa-5x"></i>
-                            </div>
-                            <div class="col-xs-5 text-center">
-                                <div class="huge">age</div>
-                                <div><strong red>parity fails</strong></div>
-                            </div>
-                            <div class="col-xs-12 text-right">
-                                <div class="huge">income</div>
-                                <div><strong red>parity fails</strong></div>
-                            </div>
-                        </div>
+                        Attributes distribution in top 100
                     </div>
-                    <a href="#">
-                        <div class="panel-footer">
-                            <span class="pull-left">View Details of parity check!</span>
-                            <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                            <div class="clearfix"></div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <span><br></span>
+                        {% for attH in chosed_atts_tuple %}
+                        <div class="form-inline">
+                            <label>{{attH.0}}</label>
+                            <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input id="{{attH.1 | safe}}_topHundred" type="text"
+                              data-provide="slider" data-slider-tooltip="always" />
+                            <span><br><br><br></span>
                         </div>
-                    </a>
+                        {% endfor %}
+                    </div>
+                    <!-- /.panel-body -->
                 </div>
+                <!-- /.panel -->
             </div>
         </div>
         <!-- /.row -->
@@ -149,53 +173,25 @@
             <div class="col-lg-12">
                 <div class="panel panel-warning">
                     <div class="panel-heading">
-                        Summary
+                        Importance of attributes
                     </div>
                     <div class="panel-body">
-                        <p>stable for top 10 <strong red>unstable for later ranks</strong></p>
-                    </div>
-                    <div class="panel-footer">
-                        10th position has the highest score. Your position is at 40th.
+                        <p>Histogram of attributes's importance:</p>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div id="stability_scatter" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
             </div>
         </div>
         <!-- /.row -->
         <div class="row">
-            <div class="col-lg-6">
+            <div class="col-lg-12">
                 <div class="panel panel-default">
-                    <div class="panel-heading">
-                        Race in top 10
-                    </div>
-                    <!-- /.panel-heading -->
                     <div class="panel-body">
-                        <div class="flot-chart">
-                            <div class="flot-chart-content" id="flot-pie-chart"></div>
+                        <div class="form-inline" align="center">
+                            <a href="{% url 'dataflow:data_process' %}" class="btn btn-default">Previous step (Parameter settings)</a>
+                            <a href="{% url 'dataflow:base' %}" class="btn btn-default">Upload new data</a>
                         </div>
                     </div>
-                    <!-- /.panel-body -->
                 </div>
-                <!-- /.panel -->
-            </div>
-            <div class="col-lg-6">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        Race in overall
-                    </div>
-                    <!-- /.panel-heading -->
-                    <div class="panel-body">
-                        <div class="flot-chart">
-                            <div class="flot-chart-content" id="flot-pie-chart2"></div>
-                        </div>
-                    </div>
-                    <!-- /.panel-body -->
-                </div>
-                <!-- /.panel -->
             </div>
         </div>
         <!-- /.row -->
@@ -203,20 +199,76 @@
     <!-- /#page-wrapper -->
 </div>
 <!-- /#wrapper -->
+<script type="text/javascript" language="javascript">
+    //update slide with statistics of attributes
+    var att_stats={{att_stats | safe}};
+    var choosed_atts = {{chosed_atts | safe}};
+    var choosed_atts_ids = {{passed_cols_ids | safe}};
 
-<script type="text/javascript">
-    var chartUrl = "{% url 'dataflow:json_nutrition' %}";
+    $(document).ready(function () {
+        // update top 10 statistics
+        for (i in choosed_atts) {
+            var tick_atti_T = att_stats["topTen"][i];
+            var att_id_T = "#"+choosed_atts_ids[i]+"_topTen";
+            $(att_id_T).slider({
+                min: tick_atti_T[2],
+                max: tick_atti_T[0],
+                value: tick_atti_T[1],
+                step: 1,
+                ticks: tick_atti_T,
+                ticks_labels: ['min: '+tick_atti_T[2], 'medium', 'max: '+tick_atti_T[0]],
+                disable: true
+            });
+        }
+        // update top 100 statistics
+        for (i in choosed_atts) {
+            var tick_atti_H = att_stats["topHundred"][i];
+            var att_id_H = "#"+choosed_atts_ids[i]+"_topHundred";
+            $(att_id_H).slider({
+                min: tick_atti_H[2],
+                max: tick_atti_H[0],
+                value: tick_atti_H[1],
+                step: 1,
+                ticks: tick_atti_H,
+                ticks_labels: ['min: '+tick_atti_H[2], 'medium', 'max: '+tick_atti_H[0]],
+                disable: true
+            });
+        }
+
+    });
+</script>
+<script type="text/javascript" language="javascript">
+    //update formula
+    // update parameter input components with user entered value
+    $(document).ready(function () {
+        //remove the last plus symbol
+        var current_formula = document.getElementById("rank_formula").innerHTML;
+        var last_plus = current_formula.lastIndexOf("+");
+        document.getElementById("rank_formula").innerHTML = current_formula.substring(0,last_plus);
+
+        var att_weights={{att_weights | safe}};
+        var choosed_atts = {{chosed_atts | safe}};
+        for (i in choosed_atts) {
+            var att_weight = att_weights[choosed_atts[i]];
+            document.getElementById(choosed_atts[i]+"_weight").innerHTML = att_weight;
+            document.getElementById(choosed_atts[i]).value = choosed_atts[i];
+        }
+
+    });
+</script>
+<script type="text/javascript" language="javascript">
+    var chartUrl = "{% url 'dataflow:json_scatter_score' %}";
     $.getJSON(chartUrl, function (data) {
-        $('#stability_scatter').highcharts({
+        $('#score_scatter').highcharts({
             chart: {
                 type: 'scatter',
                 zoomType: 'xy'
             },
             title: {
-                text: 'Stability'
+                text: 'Score distribution'
             },
             subtitle: {
-                text: 'ranked on publication count'
+                text: 'ranked on weight sum of selected attributes'
             },
             xAxis: {
                 title: {
@@ -267,9 +319,9 @@
                 }
             },
             series: [{
-                name: 'publication',
+                name: 'score',
                 color: 'rgba(223, 83, 83, .5)',
-                data: data["scatters"]["datapoint"]
+                data: data
             }]
         });
     });
@@ -278,25 +330,7 @@
 
 <!-- Bootstrap Core JavaScript -->
 <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
-
-<!-- Metis Menu Plugin JavaScript -->
-<script src="{% static 'metisMenu/metisMenu.min.js' %}"></script>
-
-<!-- Morris Charts JavaScript -->
-<script src="{% static 'raphael/raphael.min.js' %}"></script>
-<script src="{% static 'morrisjs/morris.min.js' %}"></script>
-<script src="{% static 'morrisjs/morris-data.js' %}"></script>
-
-<!-- Flot Charts JavaScript -->
-<script src="{% static 'flot/excanvas.min.js' %}"></script>
-<script src="{% static 'flot/jquery.flot.js' %}"></script>
-<script src="{% static 'flot/jquery.flot.pie.js' %}"></script>
-<script src="{% static 'flot/jquery.flot.resize.js' %}"></script>
-<script src="{% static 'flot/jquery.flot.time.js' %}"></script>
-<script src="{% static 'flot-tooltip/jquery.flot.tooltip.min.js' %}"></script>
-<script src="{% static 'flot/flot-data.js' %}"></script>
-
-<!-- Custom Theme JavaScript -->
-<script src="{% static 'sbadmin/js/sb-admin-2.js' %}"></script>
+<!-- bootstrap-slider JavaScript-->
+<script src="{% static 'bootstrap-slider/bootstrap-slider.min.js' %}"></script>
 
 </body>

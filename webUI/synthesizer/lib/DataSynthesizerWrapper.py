@@ -131,26 +131,54 @@ def get_plot_data(input_dataset_file, synthetic_dataset_file, description_file):
         json.dump(plot_data, outfile, indent=4)
 
 
+
+def get_categorical_attributes_csv(input_file_name, categorical_threshold=20):
+    # get the categorical attributes using data describer
+    df = pd.read_csv(input_file_name)
+    numeric_attributes = df.describe().columns
+
+    all_attributes = list(df.columns)
+    categorical_attributes = []
+
+    for attr in df:
+        if df[attr].dropna().unique().size <= categorical_threshold:
+            categorical_attributes.append(attr)
+        elif attr in numeric_attributes:
+            pass
+        else:
+            categorical_attributes.append(attr)
+    return categorical_attributes
+
 def get_categorical_attributes(plot_json_file):
     plot_data = read_json_file(plot_json_file)
     return list(plot_data['barchart'].keys())
-
 
 def get_drawable_attributes(plot_json_file):
     plot_data = read_json_file(plot_json_file)
     return list(plot_data['barchart'].keys()) + list(plot_data['histogram'].keys())
 
 
-def get_barchart_data(df, col):
+def get_barchart_data(df, col, sort_index=True):
     distribution = df[col].dropna().value_counts()
-    distribution.sort_index(inplace=True)
-    return distribution.index.tolist(), distribution.tolist()
+    if sort_index:
+        distribution.sort_index(inplace=True)
+
+    bins = distribution.index.tolist()
+    if (distribution.index.dtype == 'int64'):
+        bins = [int(x) for x in distribution.index]
+    return bins, distribution.tolist()
 
 
 def get_histogram_data(df, col):
     distribution = np.histogram(df[col].dropna(), bins=20)
     return [[float(distribution[1][i]), int(distribution[0][i])] for i in range(len(distribution[0]))]
 
+def get_barchart_data_of_top_frequencies(df, col, bins=20):
+    distribution = df[col].dropna().value_counts()[:bins]
+    bins = distribution.index.tolist()
+    if (distribution.index.dtype == 'int64'):
+        bins = [int(x) for x in distribution.index]
+    return bins, distribution.tolist()
 
 def get_heatmap_data(dataset_filename):
     df = pd.read_csv(dataset_filename)
@@ -163,9 +191,39 @@ def get_heatmap_data(dataset_filename):
     return out
 
 
-if __name__ == '__main__':
-    data = '/home/haoyue/GitLab/data-responsibly-webUI/dataResponsiblyUI/static/data/adult_reduced.csv'
-    df = pd.read_csv(data)
+def get_histograms_of(input_dataset_file, categorical_threshold=20):
+    df = pd.read_csv(input_dataset_file)
+    numeric_attributes = df.describe().columns
+    plot_data = {'histogram': {}, 'barchart': {}}
 
-    d = df['income'].value_counts()
-    print(np.histogram(df['age'], bins=20))
+    all_attributes = list(df.columns)
+    drawable_attributes = []
+    categorical_attributes = []
+    attribute_information = {'all_atts': all_attributes,
+                             'drawable_atts': drawable_attributes,
+                             'cate_atts': categorical_attributes}
+
+    for attr in df:
+        if df[attr].dropna().unique().size <= categorical_threshold:
+            bins, counts = get_barchart_data(df, attr, False)
+            plot_data['barchart'][attr] = {'bins': bins, 'counts': counts}
+            categorical_attributes.append(attr)
+            drawable_attributes.append(attr)
+        elif attr in numeric_attributes:
+            plot_data['histogram'][attr] = get_histogram_data(df, attr)
+            drawable_attributes.append(attr)
+        else:
+            bins, counts = get_barchart_data_of_top_frequencies(df, attr)
+            plot_data['barchart'][attr] = {'bins': bins, 'counts': counts}
+            categorical_attributes.append(attr)
+            drawable_attributes.append(attr)
+
+    plot_file_name = input_dataset_file.replace(".csv", "_plot.json")
+    with open(plot_file_name, 'w') as outfile:
+        json.dump(plot_data, outfile, indent=4)
+
+    return attribute_information
+
+
+if __name__ == '__main__':
+    data = '~/GitLab/data-responsibly-webUI/dataResponsiblyUI/static/data/adult_mini_1.csv'

@@ -29,35 +29,44 @@
 
         <div class="row">
             <div class="col-lg-12">
-                <div class="intro-message">
-                    <h1>Ranking Facts</h1>
-                    <hr class="intro-divider">
-                    <form id="file_upload" action="{% url 'dataflow:base_data' %}" method="post"
-                          enctype="multipart/form-data">{% csrf_token %}
-                        <div><input type="file" class="filestyle" data-icon="false" name="csv_file"></div>
-                        <input id="upload_btn" class="btn btn-default btn-lg top-buffer" aria-haspopup="true"
-                               aria-expanded="false" type="submit" value="Upload"/>
-                    </form>
+                <div class="navbar-header">
+                    <div class="navbar-brand navbar-left">
+                        <img id="dt_logo" class="img-responsive" src="{% static 'images/TranspaRank_Logo.png' %}">
+                    </div>
+                    <div class="navbar-brand navbar-right">
+                        <img id="head_logo" class="img-responsive" src="{% static 'images/header_logo.png' %}">
+                    </div>
+                    <div class="intro-message">
+                        <h1>Transparent Ranking</h1>
+                        <hr class="intro-divider">
+                        <form id="file_upload" onsubmit="return validateUploadFile()" action="{% url 'dataflow:base_data' %}" method="post"
+                              enctype="multipart/form-data">{% csrf_token %}
+                            <div><input id="upload_file" type="file" class="filestyle" data-icon="false" name="csv_file"></div>
+                            <br>
+                            <input id="upload_btn" class="btn btn-default btn-lg top-buffer" aria-haspopup="true"
+                                   aria-expanded="false" type="submit" value="Upload"/>
+                        </form>
 
+                    </div>
                 </div>
             </div>
         </div>
 
     </div>
-    <!-- FOOTER -->
-    <div class="footer_div">
-        <div class="container_footer">
-            <footer class="main_footer">
-                <p class="text-muted">
-                    &copy; 2017 DataResponsibly by <a href="https://www.cs.drexel.edu/dbgroup/">Drexel database
-                    group</a>
-                    | <a href="https://www.dagstuhl.de/en/program/calendar/semhp/?semnr=16291">About</a>
-                    | <a href="https://www.cs.drexel.edu/dbgroup/">Contact Us</a>
-                </p>
-            </footer>
-        </div>
-    </div>
 
+</div>
+
+<!-- FOOTER -->
+<div class="footer_div">
+    <div class="container_footer">
+        <footer class="main_footer">
+            <p class="text-muted">
+                &copy; 2017 <a href="https://github.com/DataResponsibly/FairRank"> Fair Rank </a>
+                | <a href="https://dataresponsibly.github.io">Data Responsibly</a>
+                | <a href="https://dataresponsibly.github.io/contact/">Contact Us</a>
+            </p>
+        </footer>
+    </div>
 </div>
 
 <style>
@@ -72,6 +81,17 @@
     }
 
 </style>
+
+<script>
+    function validateUploadFile() {
+        if ($('#upload_file').val()) {
+            return true;
+        } else {
+           alert("Upload file first!");
+           return false;
+        }
+    }
+</script>
 
 
 <!-- JavaScript -->
