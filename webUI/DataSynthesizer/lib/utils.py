@@ -93,12 +93,7 @@ def read_json_file(json_file):
 
 
 def get_numeric_column_list_from_dataframe(dataframe):
-    describe = dataframe.describe()
-    # the shape of describe() for numeric values has 8 rows.
-    if describe.shape[0] == 8:
-        return describe.columns.tolist()
-    else:
-        return []
+    return dataframe.describe().columns.tolist()
 
 
 def display_bayesian_network(bn):
