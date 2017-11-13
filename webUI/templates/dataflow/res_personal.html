@@ -145,8 +145,18 @@
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div class="form-inline" align="center">
-                            <a href="{% url 'dataflow:data_process' %}" class="btn btn-default">Previous step (Parameter settings)</a>
-                            <a href="{% url 'dataflow:base' %}" class="btn btn-default">Upload new data</a>
+                            {% if passed_unprocessing_flag %}
+                            <a href="{% url 'dataflow:data_process' %}" class="btn btn-default btn-lg">
+                                <span class="glyphicon glyphicon-menu-left"></span>
+                                Previous step (Parameter Settings)</a>
+                            {% else %}
+                            <a href="{% url 'dataflow:norm_process' %}" class="btn btn-default btn-lg">
+                                <span class="glyphicon glyphicon-menu-left"></span>
+                                Previous step (Parameter Settings)</a>
+                            {% endif %}
+                            <a href="{% url 'dataflow:base' %}" class="btn btn-default btn-lg">
+                                Upload new data
+                                <span class="glyphicon glyphicon-menu-right"></span></a>
                         </div>
                     </div>
                 </div>

@@ -119,6 +119,9 @@
                                                 </h5>
                                             </div>
                                             <div class="panel-body">
+                                                <div class="form-group" id="key_att_checkboxes_m1">
+                                                    <label>Choose attributes with unique values: </label>
+                                                </div>
                                                 <div class="form-group" id="cat_att_checkboxes_m1">
                                                     <label>Choose categorical attributes: </label>
                                                 </div>
@@ -150,6 +153,9 @@
                                                 </h5>
                                             </div>
                                             <div class="panel-body">
+                                                <div class="form-group" id="key_att_checkboxes_m2">
+                                                    <label>Choose attributes with unique values: </label>
+                                                </div>
                                                 <div class="form-group" id="cat_att_checkboxes_m2">
                                                     <label>Choose categorical attributes: </label>
                                                 </div>
@@ -195,8 +201,11 @@
                                                 </h5>
                                             </div>
                                             <div class="panel-body">
+                                                <div class="form-group" id="key_att_checkboxes_m3">
+                                                    <label>Choose attributes with unique values: </label>
+                                                </div>
                                                 <div class="form-group" id="cat_att_checkboxes_m3">
-                                                    <label>Choose all categorical attributes: </label>
+                                                    <label>Choose categorical attributes: </label>
                                                 </div>
                                                 <div class="form-inline">
                                                     <label class="mr-sm-2"> N = </label>
@@ -315,7 +324,7 @@
         {{ passed_cat_atts | safe }};
     var data_type_atts =
         {{ passed_att_types | safe }};
-
+    var key_atts = {{passed_key_atts | safe}};
     // create checkboxes and check the corresponding box by detected categorical attributes
     for (i in table_header) {
         if (cate_atts.includes(table_header[i])) {
@@ -342,10 +351,32 @@
             $('#cat_att_checkboxes_m3').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="checks_m3" type="checkbox" value="' + table_header[i] + '">' + table_header[i] + '</label>');
         }
     }
+    // create checkboxes and check the corresponding box by detected key attributes
+    for (i in table_header) {
+        if (key_atts.includes(table_header[i])) {
+            $('#key_att_checkboxes_m1').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="key_checks_m1" type="checkbox" checked="checked" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        } else {
+            $('#key_att_checkboxes_m1').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="key_checks_m1" type="checkbox" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        }
+    }
+    for (i in table_header) {
+        if (key_atts.includes(table_header[i])) {
+            $('#key_att_checkboxes_m2').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="key_checks_m2" type="checkbox" checked="checked" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        } else {
+            $('#key_att_checkboxes_m2').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="key_checks_m2" type="checkbox" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        }
+    }
+    for (i in table_header) {
+        if (key_atts.includes(table_header[i])) {
+            $('#key_att_checkboxes_m3').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="key_checks_m3" type="checkbox" checked="checked" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        } else {
+            $('#key_att_checkboxes_m3').append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class="checkbox-inline"><input name="key_checks_m3" type="checkbox" value="' + table_header[i] + '">' + table_header[i] + '</label>');
+        }
+    }
 
 
     // create selects and set the detected attribute type as default value for m2 and m3
-    var select_default = '<option value="integer">integer</option><option value="float">float</option><option value="datetime">datetime</option><option value="string">string</option>';
+    var select_default = '<option value="Integer">Integer</option><option value="Float">Float</option><option value="DateTime">DateTime</option><option value="String">String</option><option value="SocialSecurityNumber">SocialSecurityNumber</option>';
 
     var count_col_m2 = 0;
     $('#att_type_m2').append('<div class="row">');
@@ -355,25 +386,32 @@
         var current_att_type = data_type_atts[i];
         var select_custo = "";
 
-        if (current_att_type == "string") {
-            var disabled_str = select_default.replace('<option value="integer">', '<option value="integer" disabled>');
-            temp_disable_1 = disabled_str.replace('<option value="float">', '<option value="float" disabled>');
-            temp_disable_2 = temp_disable_1.replace('<option value="datetime">', '<option value="datetime" disabled>');
-            select_custo = temp_disable_2.replace('<option value="string">', '<option selected value="string">');
+        if (current_att_type == "String") {
+            var disabled_str = select_default.replace('<option value="Integer">', '<option value="Integer" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="Float">', '<option value="Float" disabled>');
+            temp_disable_2 = temp_disable_1.replace('<option value="DateTime">', '<option value="DateTime" disabled>');
+            temp_disable_3 = temp_disable_2.replace('<option value="SocialSecurityNumber">', '<option value="SocialSecurityNumber" disabled>');
+            select_custo = temp_disable_3.replace('<option value="String">', '<option value="String" selected>');
         }
-        if (current_att_type == "integer") {
-            var disabled_str = select_default.replace('<option value="datetime">', '<option value="datetime" disabled>');
-            select_custo = disabled_str.replace('<option value="integer">', '<option selected value="integer">');
+        if (current_att_type == "Integer") {
+            var disabled_str = select_default.replace('<option value="DateTime">', '<option value="DateTime" disabled>');
+            select_custo = disabled_str.replace('<option value="Integer">', '<option value="Integer" selected>');
         }
-
-        if (current_att_type == "float") {
-            var disabled_str = select_default.replace('<option value="datetime">', '<option value="datetime" disabled>');
-            select_custo = disabled_str.replace('<option value="float">', '<option selected value="float">');
+        if (current_att_type == "Float") {
+            var disabled_str = select_default.replace('<option value="DateTime">', '<option value="DateTime" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="SocialSecurityNumber">', '<option value="SocialSecurityNumber" disabled>');
+            select_custo = temp_disable_1.replace('<option value="Float">', '<option value="Float" selected>');
         }
-        if (current_att_type == "datetime") {
-            var disabled_str = select_default.replace('<option value="integer">', '<option value="integer" disabled>');
-            temp_disable_1 = disabled_str.replace('<option value="float">', '<option value="float" disabled>');
-            select_custo = temp_disable_1.replace('<option value="datetime">', '<option selected value="datetime">');
+        if (current_att_type == "DateTime") {
+            var disabled_str = select_default.replace('<option value="Integer">', '<option value="Integer" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="Float">', '<option value="Float" disabled>');
+            temp_disable_2 = temp_disable_1.replace('<option value="SocialSecurityNumber">', '<option value="SocialSecurityNumber" disabled>');
+            select_custo = temp_disable_2.replace('<option value="DateTime">', '<option value="DateTime" selected>');
+        }
+        if (current_att_type == "SocialSecurityNumber") {
+            var disabled_str = select_default.replace('<option value="DateTime">', '<option value="DateTime" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="Float">', '<option value="Float" disabled>');
+            select_custo = temp_disable_1.replace('<option value="SocialSecurityNumber">', '<option value="SocialSecurityNumber" selected>');
         }
 
         $('#att_type_m2').append('<div class="col-xs-3"><div class="form-group"><label for="example-text-input" class="col-2 col-form-label">' + table_header[i] + '</label> <select name="' + table_header[i] + '_m2" class="selectpicker form-control" data-width="auto">' + select_custo + '</select></div></div>');
@@ -395,24 +433,32 @@
         var current_att_type = data_type_atts[i];
         var select_custo = "";
 
-        if (current_att_type == "string") {
-            var disabled_str = select_default.replace('<option value="integer">', '<option value="integer" disabled>');
-            temp_disable_1 = disabled_str.replace('<option value="float">', '<option value="float" disabled>');
-            temp_disable_2 = temp_disable_1.replace('<option value="datetime">', '<option value="datetime" disabled>');
-            select_custo = temp_disable_2.replace('<option value="string">', '<option value="string" selected>');
+        if (current_att_type == "String") {
+            var disabled_str = select_default.replace('<option value="Integer">', '<option value="Integer" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="Float">', '<option value="Float" disabled>');
+            temp_disable_2 = temp_disable_1.replace('<option value="DateTime">', '<option value="DateTime" disabled>');
+            temp_disable_3 = temp_disable_2.replace('<option value="SocialSecurityNumber">', '<option value="SocialSecurityNumber" disabled>');
+            select_custo = temp_disable_3.replace('<option value="String">', '<option value="String" selected>');
         }
-        if (current_att_type == "integer") {
-            var disabled_str = select_default.replace('<option value="datetime">', '<option value="datetime" disabled>');
-            select_custo = disabled_str.replace('<option value="integer">', '<option value="integer" selected>');
+        if (current_att_type == "Integer") {
+            var disabled_str = select_default.replace('<option value="DateTime">', '<option value="DateTime" disabled>');
+            select_custo = disabled_str.replace('<option value="Integer">', '<option value="Integer" selected>');
         }
-        if (current_att_type == "float") {
-            var disabled_str = select_default.replace('<option value="datetime">', '<option value="datetime" disabled>');
-            select_custo = disabled_str.replace('<option value="float">', '<option value="float" selected>');
+        if (current_att_type == "Float") {
+            var disabled_str = select_default.replace('<option value="DateTime">', '<option value="DateTime" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="SocialSecurityNumber">', '<option value="SocialSecurityNumber" disabled>');
+            select_custo = temp_disable_1.replace('<option value="Float">', '<option value="Float" selected>');
         }
-        if (current_att_type == "datetime") {
-            var disabled_str = select_default.replace('<option value="integer">', '<option value="integer" disabled>');
-            temp_disable_1 = disabled_str.replace('<option value="float">', '<option value="float" disabled>');
-            select_custo = temp_disable_1.replace('<option value="datetime">', '<option value="datetime" selected>');
+        if (current_att_type == "DateTime") {
+            var disabled_str = select_default.replace('<option value="Integer">', '<option value="Integer" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="Float">', '<option value="Float" disabled>');
+            temp_disable_2 = temp_disable_1.replace('<option value="SocialSecurityNumber">', '<option value="SocialSecurityNumber" disabled>');
+            select_custo = temp_disable_2.replace('<option value="DateTime">', '<option value="DateTime" selected>');
+        }
+        if (current_att_type == "SocialSecurityNumber") {
+            var disabled_str = select_default.replace('<option value="DateTime">', '<option value="DateTime" disabled>');
+            temp_disable_1 = disabled_str.replace('<option value="Float">', '<option value="Float" disabled>');
+            select_custo = temp_disable_1.replace('<option value="SocialSecurityNumber">', '<option value="SocialSecurityNumber" selected>');
         }
 
         $('#att_type_m3').append('<div class="col-xs-3"><div class="form-group"><label for="example-text-input" class="col-2 col-form-label">' + table_header[i] + '</label> <select name="' + table_header[i] + '_m3" class="selectpicker form-control" data-width="auto">' + select_custo + '</select></div></div>');

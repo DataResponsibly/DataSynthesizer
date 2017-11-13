@@ -12,19 +12,19 @@ def get_dataset_info(file_name):
     d = DataDescriber()
     d.describe_dataset_in_independent_attribute_mode(file_name)
 
-    dataset_info = {'categorical_attributes': [],
+    dataset_info = {'candidate_attributes': [],
+                    'categorical_attributes': [],
                     'attribute_datatypes': {},
                     'number_of_tuples': d.dataset_description['meta']['num_tuples'],
-                    'attribute_list': d.dataset_description['meta']['attribute_list']}
+                    'attribute_list': d.dataset_description['meta']['all_attributes']}
 
     for attribute in d.dataset_description['attribute_description']:
         current_attribute_info = d.dataset_description['attribute_description'][attribute]
+        if current_attribute_info['is_candidate_key']:
+            dataset_info['candidate_attributes'].append(attribute)
         if current_attribute_info['is_categorical']:
             dataset_info['categorical_attributes'].append(attribute)
-        data_type = current_attribute_info['datatype']
-        if data_type == "int":
-            data_type = "integer"
-        dataset_info['attribute_datatypes'][attribute] = data_type
+        dataset_info['attribute_datatypes'][attribute] = current_attribute_info['data_type']
 
     return dataset_info
 
@@ -42,6 +42,13 @@ def generate_data(username):
     synthetic_dataset_file = '{}_synthetic_data.csv'.format(username)
 
     initial_dataset_info = get_dataset_info(input_dataset_file)
+
+    attribute_to_is_candidate = {}
+    for attr in initial_dataset_info['attribute_list']:
+        if attr in configuration['candidate_atts']:
+            attribute_to_is_candidate[attr] = True
+        else:
+            attribute_to_is_candidate[attr] = False
 
     attribute_to_is_categorical = {}
     for attr in initial_dataset_info['attribute_list']:
@@ -68,7 +75,7 @@ def generate_data(username):
     generator = DataGenerator()
     if configuration['chose_mode'] == 'mode1':
         describer = DataDescriber()
-        describer.describe_dataset_in_random_mode(input_dataset_file, {}, attribute_to_is_categorical, seed)
+        describer.describe_dataset_in_random_mode(input_dataset_file, {}, attribute_to_is_categorical, attribute_to_is_candidate, seed)
         describer.save_dataset_description_to_file(description_file)
         generator.generate_dataset_in_random_mode(n, description_file, seed)
     else:
@@ -88,7 +95,7 @@ def generate_data(username):
         describer = DataDescriber(histogram_size)
         if configuration['chose_mode'] == 'mode2':
             describer.describe_dataset_in_independent_attribute_mode(input_dataset_file, epsilon, attribute_to_datatype,
-                                                                     attribute_to_is_categorical, seed)
+                                                                     attribute_to_is_categorical, attribute_to_is_candidate, seed)
             describer.save_dataset_description_to_file(description_file)
             generator.generate_dataset_in_independent_mode(n, description_file, seed)
         elif configuration['chose_mode'] == 'mode3':
@@ -102,6 +109,7 @@ def generate_data(username):
                                                                     epsilon,
                                                                     attribute_to_datatype,
                                                                     attribute_to_is_categorical,
+                                                                    attribute_to_is_candidate,
                                                                     seed)
             describer.save_dataset_description_to_file(description_file)
             generator.generate_dataset_in_correlated_attribute_mode(n, description_file, seed)
@@ -120,7 +128,7 @@ def get_plot_data(input_dataset_file, synthetic_dataset_file, description_file):
             bins_after, counts_after = get_barchart_data(df_after, attr)
             plot_data['barchart'][attr] = {'before': {'bins': bins_before, 'counts': counts_before},
                                            'after': {'bins': bins_after, 'counts': counts_after}}
-        elif description['attribute_description'][attr]['datatype'] in {'integer', 'float'}:
+        elif description['attribute_description'][attr]['data_type'] in {'Integer', 'Float'}:
             plot_data['histogram'][attr] = {'before': get_histogram_data(df_before, attr),
                                             'after': get_histogram_data(df_after, attr)}
 
@@ -131,13 +139,11 @@ def get_plot_data(input_dataset_file, synthetic_dataset_file, description_file):
         json.dump(plot_data, outfile, indent=4)
 
 
-
 def get_categorical_attributes_csv(input_file_name, categorical_threshold=20):
     # get the categorical attributes using data describer
     df = pd.read_csv(input_file_name)
     numeric_attributes = df.describe().columns
 
-    all_attributes = list(df.columns)
     categorical_attributes = []
 
     for attr in df:
@@ -149,9 +155,11 @@ def get_categorical_attributes_csv(input_file_name, categorical_threshold=20):
             categorical_attributes.append(attr)
     return categorical_attributes
 
+
 def get_categorical_attributes(plot_json_file):
     plot_data = read_json_file(plot_json_file)
     return list(plot_data['barchart'].keys())
+
 
 def get_drawable_attributes(plot_json_file):
     plot_data = read_json_file(plot_json_file)
@@ -173,12 +181,14 @@ def get_histogram_data(df, col):
     distribution = np.histogram(df[col].dropna(), bins=20)
     return [[float(distribution[1][i]), int(distribution[0][i])] for i in range(len(distribution[0]))]
 
+
 def get_barchart_data_of_top_frequencies(df, col, bins=20):
     distribution = df[col].dropna().value_counts()[:bins]
     bins = distribution.index.tolist()
     if (distribution.index.dtype == 'int64'):
         bins = [int(x) for x in distribution.index]
     return bins, distribution.tolist()
+
 
 def get_heatmap_data(dataset_filename):
     df = pd.read_csv(dataset_filename)

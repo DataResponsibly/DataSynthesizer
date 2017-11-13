@@ -1,0 +1,518 @@
+{% load static %}
+<head>
+    <!-- Bootstrap Core CSS -->
+    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="{% static 'metisMenu/metisMenu.min.css' %}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'sbadmin/css/sb-admin-2.css' %}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- jQuery -->
+    <script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
+    <!-- dataTable -->
+    <link href="{% static 'datatables/media/css/jquery.dataTables.css' %}" rel="stylesheet">
+    <script src="{% static 'datatables/media/js/jquery.dataTables.js' %}"></script>
+    <!-- bootstrap-select -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.6.3/css/bootstrap-select.min.css" />
+
+    <!-- Highcharts JavaScript -->
+    <script src="{% static 'highcharts/code/highcharts.js' %}"></script>
+    <script src="{% static 'highcharts/code/modules/exporting.js' %}"></script>
+    <script src="https://code.highcharts.com/modules/gray.js"></script>
+
+</head>
+
+<body>
+<div id="wrapper">
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand"><h4>Parameter Settings</h4></a>
+        </div>
+        <!-- /.navbar-header -->
+
+        <ul class="nav navbar-top-links navbar-right">
+            <div>
+                <img src="{% static 'images/header_logo_grey_small.jpg' %}" class="img-responsive"
+                     style="padding-top: 5px">
+            </div>
+        </ul>
+        <!-- /.navbar-top-links -->
+
+        <div class="navbar-default sidebar" role="navigation">
+            <div class="sidebar-nav navbar-collapse">
+                <ul class="nav" id="side-menu">
+                    <li>
+                        <a href="{% url 'dataflow:data_process' %}"><i class="fa fa-table fa-fw"></i> Without pre-processing</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'dataflow:norm_process' %}"><i class="fa fa-wrench fa-fw"></i> With processing</a>
+                    </li>
+
+                </ul>
+            </div>
+            <!-- /.sidebar-collapse -->
+        </div>
+        <!-- /.navbar-static-side -->
+    </nav>
+
+
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h2 class="page-header">Ranking parameters for processed data</h2>
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div id="upload_table" class="col-lg-12">
+                <table id="proc_data_table" class="display nowrap" cellspacing="0" width="100%">
+                </table>
+            </div>
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <span><br><br></span>
+            </div>
+        </div>
+        <!-- /.row -->
+        <form role="form" action="" onsubmit="return validateInputAtt()" method="post"> {% csrf_token %}
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <div class="form-inline">
+                                <label class="panel-title">
+                                    View attributes's distribution
+                                </label>
+                                <span>&nbsp;</span>
+                                <select id="att_select" class="selectpicker" data-live-search="true">
+                                    {% for atti in passed_column_name %}
+                                     <option value="{{ atti | safe }}">{{ atti }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            {% for atti in passed_column_name %}
+                            <div id="{{ atti | safe }}_distribution" style="display:none" class="col-lg-12">
+                                {% if atti in passed_cate_atts %}
+                                    <div id="{{ atti | safe }}_barchart"></div>
+                                {% else %}
+                                    <div id="{{ atti | safe }}_histogram"></div>
+                                {% endif %}
+                            </div>
+                            <!-- his col-lg-8 -->
+                            {% endfor %}
+                            <!-- /.row -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
+                </div>
+            </div>
+            <!-- /.row -->
+             <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-success">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">Specify ranking function (only numerical attributes can be included!)</h4>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            {% for atti_name,atti_id in passed_zip_numeric %}
+                            <div class="form-inline">
+                                <label class="checkbox-inline">
+                                    <input type='hidden' name="{{atti_id | safe}}_checks" value="{{atti_name | safe}}_unchecked">
+                                    <input id="{{atti_id | safe}}_checks" name="{{atti_id | safe}}_checks" type="checkbox" value="{{atti_name | safe}}"> {{ atti_name }}
+                                </label>
+                                <span>&nbsp;&nbsp;</span>
+                                <div id="{{ atti_id | safe }}_para" style="display:none">
+                                    <div class="form-inline">
+                                        <label> Weight</label>
+                                        <input id="{{ atti_id | safe}}_weight" name="{{ atti_id | safe}}_weight" class="form-control" placeholder="1.0">
+                                        <span>  &nbsp;&nbsp; </span>
+                                        <label> Sort by</label>
+                                        <select id="{{ atti_id | safe}}_order" name="{{ atti_id | safe}}_order" class=form-control>
+                                            <option value="higher">Higher to lower</option>
+                                            <option value="lower">Lower to higher</option>
+                                        </select>
+                                    </div>
+                                    <span><br></span>
+                                </div><!-- /.div para -->
+                            </div><!-- /.div para inline -->
+                            {% endfor %}
+                        </div>
+                        <!-- /.panel-body -->
+                        <div class="panel-footer">
+                            <div class="form-inline" align="center">
+                                <input id="btn_ranking" type="submit" class="btn btn-success" value="Ranking Preview"/>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.panel -->
+                </div>
+            </div>
+            <!-- /.row -->
+        </form>
+        <!-- /.submit form -->
+        {% if passed_res_atts %}
+        <div class="row">
+            <div class="col-lg-12">
+                <table id="ranking_table" class="display nowrap" cellspacing="0" width="100%">
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="form-inline" align="center">
+                            <a href="{% url 'dataflow:base' %}" class="btn btn-default btn-lg">
+                                <span class="glyphicon glyphicon-menu-left"></span>
+                                Previous step (Upload data)</a>
+                            <form style="display:inline;" role="form" action="{% url 'dataflow:nutrition_facts' %}" onsubmit="return validateRankPreview()" method="post">{% csrf_token %}
+                                <button type="submit" class="btn btn-default btn-lg">
+                                    Generate ranking facts
+                                <span class="glyphicon glyphicon-menu-right"></span></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.row -->
+        </div>
+        <!-- /#page-wrapper -->
+    </div>
+</div>
+<!-- /#wrapper -->
+<!-- define function to compare to arrays-->
+<script type="text/javascript" language="JavaScript">
+    function arraysEqual(a, b) {
+      if (a === b) return true;
+      if (a == null || b == null) return false;
+      if (a.length != b.length) return false;
+      // Don't care about the order of the elements inside
+      // the array, sort both arrays first.
+      a.sort();
+      b.sort();
+      for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+      }
+      return true;
+    }
+</script>
+<!-- validation for generate ranking facts when click-->
+<script type="text/javascript" language="javascript">
+    // also check for multiple updates of parameters
+    // based on comparasion between current ckecked atts and server-side record selected atts
+    var choosed_atts_ids = {{passed_ranked_atts_ids | safe}};
+    var enter_paras={{passed_atts_json | safe}};
+    // get current checked boxes
+    var num_att_ids = {{passed_num_atts_ids | safe}};
+
+    function validateRankPreview() {
+        var checked_atts_ids = [];
+        for (i in num_att_ids) {
+            var cur_checks_id = num_att_ids[i]+"_checks";
+            var cur_checked_att = document.getElementById(cur_checks_id).checked;
+            if (cur_checked_att == true) {
+                checked_atts_ids.push(num_att_ids[i]);
+            }
+        }
+        // no submission ever so no choosed atts
+        var non_update_att_flag = true;
+        // flag for update order and weight of choosed attributes
+        var non_order_click_flag = true;
+        var non_weight_update_flag = true;
+        // flag for add new attributes
+        non_update_att_flag = arraysEqual(checked_atts_ids,choosed_atts_ids);
+
+        if (choosed_atts_ids != false){ // check current choosed att and passed att and order of them
+            for (i in choosed_atts_ids){
+                var cur_order_att = document.getElementById(choosed_atts_ids[i]+"_order").value;
+                var cur_weight_att = document.getElementById(choosed_atts_ids[i]+"_weight").value;
+                var passed_att_order = enter_paras[choosed_atts_ids[i]]["order"];
+                var passed_att_weight = enter_paras[choosed_atts_ids[i]]["weight"];
+                if (cur_weight_att != passed_att_weight){
+                    non_weight_update_flag = false;
+                }
+                if (cur_order_att != passed_att_order){
+                    non_order_click_flag = false;
+                }
+            }
+        }
+
+        if (choosed_atts_ids == false || non_update_att_flag == false) {
+            if (choosed_atts_ids == false){
+                alert('You need to click Ranking Preview button before generate ranking facts!');
+            }
+            else{
+                alert('You need to click Ranking Preview button after updating parameters before generate ranking facts!');
+            }
+            return false;
+        }
+        if (non_order_click_flag== false || non_weight_update_flag == false){
+            alert('You need to click Ranking Preview button after updating parameters before generate ranking facts!');
+            return false;
+        }
+        // go to result page, i.e. nutrition facts
+        return true;
+    }
+</script>
+<!-- validation for rank preview function when submit parameters-->
+<script type="text/javascript" language="javascript">
+    // validation check when click ranking preview
+    var num_att_ids = {{passed_num_atts_ids | safe}};
+    function validateInputAtt() {
+        var choose_att_flag = "false";
+        for (i in num_att_ids) {
+           var checks_id = num_att_ids[i] + "_checks";
+           var input_weight = document.getElementById(num_att_ids[i]+"_weight").value;
+
+           if (document.getElementById(checks_id).checked) {
+                var parsed_weight = parseFloat(input_weight);
+                if (isNaN(parsed_weight) && input_weight!=""){
+                    alert("You must specify the numerical weight if choose to include the attribute into ranking! (Default weight is 1.0 if leave empty)");
+                    return false;
+                }
+               choose_att_flag = "true";
+           }
+        }
+        if (choose_att_flag=="false") {
+            alert('You need to choose at least one attribute to include in the ranking function!');
+            return false;
+        }
+        else{
+           return true;
+        }
+    }//end of validation function
+</script>
+<!-- update users' input parameters after user click ranking preview-->
+<script type="text/javascript" language="javascript">
+    var enter_paras={{passed_atts_json | safe}};
+    var choosed_atts_ids = {{passed_ranked_atts_ids |safe}};
+    $(document).ready(function () {
+        if (enter_paras){
+            for (i in choosed_atts_ids) {
+                var att_weight = enter_paras[choosed_atts_ids[i]]["weight"];
+                var att_order = enter_paras[choosed_atts_ids[i]]["order"];
+                document.getElementById(choosed_atts_ids[i]+"_weight").value = att_weight;
+                document.getElementById(choosed_atts_ids[i]+"_order").value = att_order;
+
+                var checks_id = choosed_atts_ids[i]+"_checks";
+                document.getElementById(checks_id).checked = true;
+                document.getElementById(choosed_atts_ids[i] + "_para").style.display = 'inline';
+            }
+        }
+    });
+</script>
+<!-- uploaded data table -->
+<script type="text/javascript" language="javascript">
+    $(document).ready(function () {
+        $('#proc_data_table').dataTable({
+            ajax: {
+                "url": "{% url 'dataflow:norm_json_processing_data' %}",
+                "dataSrc": ""
+            },
+            columns: {{passed_json_columns | safe}},
+            columnDefs: {{passed_json_columns_header | safe}},
+            order: [[ 0, "desc" ]],
+            scrollX: true,
+        });
+    });
+</script>
+<!-- generated ranking data table -->
+<script type="text/javascript" language="javascript">
+    $(document).ready(function () {
+        $('#ranking_table').dataTable({
+            ajax: {
+                "url": "{% url 'dataflow:norm_json_generate_ranking' %}",
+                "dataSrc": ""
+            },
+            columns: {{passed_json_ranks | safe}},
+            columnDefs: {{passed_json_ranks_header | safe}},
+            order: [[ 0, "desc" ]],
+            scrollX: true,
+        });
+    });
+</script>
+<!-- display weight and order parameters panel-->
+<script type="text/javascript" language="javascript">
+    var num_att_ids = {{passed_num_atts_ids | safe}};
+    $('input[type="checkbox"]').click(function () {
+        for (i in num_att_ids) {
+           var checks_id = num_att_ids[i] + "_checks";
+           if (document.getElementById(checks_id).checked) {
+               document.getElementById(num_att_ids[i] + "_para").style.display = 'inline';
+           }
+           else {
+               document.getElementById(num_att_ids[i] + "_para").style.display = 'none';
+           }
+        }
+    });
+</script>
+
+<!-- select att drop down list for distribution-->
+<script type="text/javascript" language="javascript">
+    var all_att_names = {{passed_column_name | safe}};
+
+    document.getElementById(all_att_names[0]+"_distribution").style.display = 'inline';
+    $(function () {
+      $('.selectpicker').on('change', function(){
+        var selected = $(this).find("option:selected").val();
+
+        for (i in all_att_names) {
+            if (selected==all_att_names[i]) {
+                document.getElementById(all_att_names[i]+"_distribution").style.display = 'inline';
+            }
+            else {
+                document.getElementById(all_att_names[i]+"_distribution").style.display = 'none';
+            }
+        }
+      });
+    });
+</script>
+
+<!-- histogram plot of all attributes -->
+<script type="text/javascript" language="javascript">
+    var cate_atts = {{passed_cate_atts | safe}};
+    var drawable_att_list = {{drawable_atts | safe}};
+    var chartUrl = "{% url 'dataflow:norm_json_processing_hist' %}";
+
+    $(document).ready(function () {
+        $.getJSON(chartUrl, function (data) {
+            for (coli in drawable_att_list) {
+
+                var col_i_name = drawable_att_list[coli];
+
+                var title_text_before = 'Distribution of ' + col_i_name ;
+
+                if (cate_atts.includes(col_i_name)) {
+                    //draw bar chart here
+                    var before_barchart_name = col_i_name + "_barchart";
+                    Highcharts.chart(before_barchart_name, {
+                        chart: {
+                            type: 'column'
+                        },
+                        title: {
+                            text: title_text_before
+                        },
+                        xAxis: {
+                            categories: data["barchart"][col_i_name]["bins"],
+                            crosshair: true,
+                            labels: {
+                                style: {
+                                    fontSize: '20px'
+                                }
+                            }
+                        },
+                        yAxis: {
+                            min: 0,
+                            title: {
+                                text: 'Count',
+                                style: {
+                                    fontSize: '18px'
+                                }
+                            },
+                            labels: {
+                                style: {
+                                    fontSize: '20px'
+                                }
+                            }
+                        },
+                        plotOptions: {
+                            column: {
+                                pointPadding: 0.2,
+                                borderWidth: 0
+                            }
+                        },
+                        series: [{
+                            name: col_i_name,
+                            data: data["barchart"][col_i_name]["counts"]
+
+                        }],
+                        legend: {
+                            itemStyle: {
+                                fontSize: '18px'
+                            }
+                        }
+                    });
+
+                }
+                else {
+                    //draw distogram here
+                    var before_hist_name = col_i_name + "_histogram";
+
+                    Highcharts.chart(before_hist_name, {
+                        chart: {
+                            type: 'column'
+                        },
+                        title: {
+                            text: title_text_before
+                        },
+                        xAxis: {
+                            gridLineWidth: 1,
+                            labels: {
+                                style: {
+                                    fontSize: '20px'
+                                }
+                            }
+                        },
+                        yAxis: [{
+                            title: {
+                                text: 'Count',
+                                style: {
+                                    fontSize: '18px'
+                                }
+                            },
+                            labels: {
+                                style: {
+                                    fontSize: '18px'
+                                }
+                            }
+                        }],
+                        series: [{
+                            name: col_i_name,
+                            type: 'column',
+                            data: data['histogram'][col_i_name],
+                            pointPadding: 0,
+                            groupPadding: 0,
+                            pointPlacement: 'between',
+                        }],
+                        legend: {
+                            itemStyle: {
+                                fontSize: '18px'
+                            }
+                        }
+                    });
+
+                } //end of else
+
+            }//end of for
+        }); //end of getJson
+    }); //end of ready function
+
+</script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="{% static 'metisMenu/metisMenu.min.js' %}"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.6.3/js/bootstrap-select.min.js"></script>
+</body>

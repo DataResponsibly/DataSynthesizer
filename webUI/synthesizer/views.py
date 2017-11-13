@@ -29,21 +29,16 @@ def index_data(request):
 
 def proc_data_dash(request):
     passed_data_name = request.session.get('passed_data_name')
-    up_data = DataDescriberUI()
-    up_data.read_dataset_from_csv(passed_data_name)
-    up_data.get_dataset_meta_info()
-    up_data.get_json_data()
-
+    json_cate_info = wrapper.get_dataset_info(passed_data_name + ".csv")
+    att_list = json_cate_info["attribute_list"]
+    cat_att_list = json_cate_info["categorical_attributes"]
+    key_att_list = json_cate_info['candidate_attributes']
     json_header = []
-    att_list = up_data.dataset_description['meta']['attribute_list']
     for i in range(len(att_list)):
         json_header.append({"data": str(att_list[i])})
 
     request.session['passed_json_columns'] = json_header
     request.session['passed_column_name'] = att_list
-
-    json_cate_info = wrapper.get_dataset_info(passed_data_name + ".csv")
-    cat_att_list = json_cate_info["categorical_attributes"]
 
     data_type_list = []
     for i in att_list:
@@ -51,7 +46,8 @@ def proc_data_dash(request):
     tuple_n = json_cate_info["number_of_tuples"]
 
     context = {'passed_data_name': passed_data_name, "passed_json_columns": json_header, "passed_column_name": att_list,
-               "passed_cat_atts": cat_att_list, "passed_att_types": data_type_list, "tuple_n": tuple_n}
+               "passed_cat_atts": cat_att_list, "passed_att_types": data_type_list, "tuple_n": tuple_n,
+               "passed_key_atts": key_att_list}
 
     return render(request, "synthesizer/proc_data_dash.html", context)
 
@@ -61,10 +57,8 @@ def proc_json_processing(request):
 
     up_data = DataDescriberUI()
     up_data.read_dataset_from_csv(passed_data_name)
-    # up_data.get_dataset_meta_info()
     up_data.get_json_data()
 
-    # total_json = {}
     total_json = up_data.json_data
 
     return HttpResponse(total_json, content_type='application/json')
@@ -75,10 +69,8 @@ def res_json_processing(request):
 
     up_data = DataDescriberUI()
     up_data.read_dataset_from_csv(passed_data_name)
-    # up_data.get_dataset_meta_info()
     up_data.get_json_data()
 
-    # total_json = {}
     total_json = up_data.json_data
 
     return HttpResponse(total_json, content_type='application/json')
@@ -89,10 +81,8 @@ def res_json_processing_after(request):
 
     up_data = DataDescriberUI()
     up_data.read_dataset_from_csv('{}_synthetic_data'.format(passed_data_name))
-    # up_data.get_dataset_meta_info()
     up_data.get_json_data()
 
-    # total_json = {}
     total_json = up_data.json_data
 
     return HttpResponse(total_json, content_type='application/json')
@@ -128,6 +118,7 @@ def com_data(request):
     json_parameter["chose_mode"] = chosen_mode
     json_parameter["tuple_n"] = request.POST['tuple_N_m' + mode_id]
     json_parameter["categorical_atts"] = request.POST.getlist('checks_m' + mode_id)
+    json_parameter["candidate_atts"] = request.POST.getlist('key_checks_m' + mode_id)
     # json_parameter["categorical_threshold"] = request.POST['cate_threshold_m' + mode_id]
     json_parameter["seed"] = request.POST['seed_m' + mode_id]
 

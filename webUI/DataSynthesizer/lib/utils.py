@@ -4,48 +4,12 @@ from string import ascii_lowercase
 
 import numpy as np
 import pandas as pd
-from dateutil.parser import parse
 from sklearn.metrics import mutual_info_score, normalized_mutual_info_score
 
 
 def set_random_seed(seed=0):
     random.seed(seed)
     np.random.seed(seed)
-
-
-def is_datetime(date_string):
-    """Find whether a value is of type datetime.
-
-    Here it treats weekdays and months as categorical strings instead of converting them into timestamps.
-    """
-    weekdays = [("Mon", "Monday"),
-                ("Tue", "Tuesday"),
-                ("Wed", "Wednesday"),
-                ("Thu", "Thursday"),
-                ("Fri", "Friday"),
-                ("Sat", "Saturday"),
-                ("Sun", "Sunday")]
-    months = [("Jan", "January"),
-              ("Feb", "February"),
-              ("Mar", "March"),
-              ("Apr", "April"),
-              ("May", "May"),
-              ("Jun", "June"),
-              ("Jul", "July"),
-              ("Aug", "August"),
-              ("Sep", "Sept", "September"),
-              ("Oct", "October"),
-              ("Nov", "November"),
-              ("Dec", "December")]
-    for entry in weekdays + months:
-        for value in entry:
-            if date_string.lower() == value.lower():
-                return False
-    try:
-        parse(date_string)
-        return True
-    except ValueError:
-        return False
 
 
 def mutual_information(labels_true, labels_pred):
@@ -61,14 +25,12 @@ def mutual_information(labels_true, labels_pred):
     if isinstance(labels_pred, pd.DataFrame):
         labels_pred = labels_pred.astype(str).apply(lambda x: ' '.join(x.tolist()), axis=1)
 
-    assert isinstance(labels_true, pd.Series)
     assert isinstance(labels_pred, pd.Series)
-
     return mutual_info_score(labels_true.astype(str), labels_pred.astype(str))
 
 
 def pairwise_attributes_mutual_information(dataset):
-    """Compute mutual information for all pairwise attributes. Return a DataFrame."""
+    """Compute normalized mutual information for all pairwise attributes. Return a DataFrame."""
     mi_df = pd.DataFrame(columns=dataset.columns, index=dataset.columns, dtype=float)
     for row in mi_df.columns:
         for col in mi_df.columns:
@@ -92,8 +54,14 @@ def read_json_file(json_file):
         return json.load(file)
 
 
-def get_numeric_column_list_from_dataframe(dataframe):
-    return dataframe.describe().columns.tolist()
+def infer_numerical_attributes_in_dataframe(dataframe):
+    describe = dataframe.describe()
+    # pd.DataFrame.describe() usually returns 8 rows.
+    if describe.shape[0] == 8:
+        return describe.columns.tolist()
+    # pd.DataFrame.describe() returns less than 8 rows when there is no numerical attribute.
+    else:
+        return []
 
 
 def display_bayesian_network(bn):

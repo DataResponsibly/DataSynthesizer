@@ -82,6 +82,7 @@
             <!-- /.col-lg-12 -->
         </div>
         <!-- /.row -->
+        <form role="form" action="" onsubmit="return validateCheckedAtt()" method="post"> {% csrf_token %}
         <div class="row">
             <div class="col-lg-12">
                 <div class="panel panel-info">
@@ -92,59 +93,83 @@
                     <div class="panel-body">
                         <div class="form-group" id="sensi_checkboxes">
                             <label>Check all the sensitive attributes</label> &nbsp;&nbsp;
-                            {% for atti in passed_column_name %}
+                            {% for atti_name,atti_id in passed_zip_atts %}
                             <label class="checkbox-inline">
-                                <input id="{{atti | safe}}_sensi_checks" name="checks_sensi_atts" type="checkbox" value="{{atti | safe}}"> {{ atti }}
+                                <input type='hidden' name="{{atti_id | safe}}_sensi_checks" value="{{atti_name | safe}}_unchecked">
+                                <input id="{{atti_id | safe}}_sensi_checks" name="{{atti_id | safe}}_sensi_checks" type="checkbox" value="{{atti_name | safe}}"> {{ atti_name }}
                             </label>
                             {% endfor %}
                         </div>
-                        {% for atti in passed_column_name %}
-                        <div id="{{atti | safe}}_constraint" class="form-inline" style="display:none">
-                            <label>Input constraint of {{atti}}</label>
-                            <input id="{{ atti | safe}}_fair_constraint" name="{{ atti | safe}}_fair_constraint" class="form-control" placeholder="80%">
-                            <br><br>
-                        </div>
-                        {% endfor %}
                     </div>
                     <!-- /.panel-body -->
                     <div class="panel-footer">
                         <div class="form-inline" align="center">
-                            <button type="submit" class="btn btn-primary">Run fairness check</button>
+                            <button id="fairness_check" type="submit" class="btn btn-primary">Run fairness check</button>
                         </div>
                     </div>
                 </div>
                 <!-- /.panel -->
             </div>
-        </div>
+        </div><!-- /.row -->
+        </form>
+        {% if passed_fair_table != "false" %}
         <div class="row">
             <div class="col-lg-12">
-                <div class="panel panel-yellow">
+                 <div class="panel panel-warning">
                     <div class="panel-heading">
-                        <div class="row">
-                            <div class="col-xs-2">
-                                <i class="fa fa-bell fa-5x"></i>
-                            </div>
-                            <div class="col-xs-5 text-center">
-                                <div class="huge">age</div>
-                                <div><strong red>parity fails</strong></div>
-                            </div>
-                            <div class="col-xs-12 text-right">
-                                <div class="huge">income</div>
-                                <div><strong red>parity fails</strong></div>
-                            </div>
-                        </div>
+                        <span class="pull-left"><i class="fa fa-bell fa-2x"></i></span>
+                        <span>&nbsp;&nbsp;</span>
+                        Pairwise fairness results
+                        <span class="pull-right">
+                            <a href="#" data-toggle="tooltip"><i class="fa fa-question-circle fa-2x"></i></a>
+                        </span>
                     </div>
-                    <a href="#">
-                        <div class="panel-footer">
-                            <span class="pull-left">View Details of parity check!</span>
-                            <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                            <div class="clearfix"></div>
+                    <div class="panel-body">
+                        {% for atti_name,atti_pair in passed_fair_table.items  %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{{atti_name}}</th>
+                                        <th>Current number of pairs in generated ranking</th>
+                                        <th>Estimated number of pairs based on input data</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vali,pairs_vali in atti_pair.items %}
+                                        {% if pairs_vali.0 >= pairs_vali.1 %}
+                                        <tr class="bg-success">
+                                            <td>{{ vali }}</td>
+                                            <td>{{ pairs_vali.0 }}</td>
+                                            <td>{{ pairs_vali.1 }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr class="bg-danger">
+                                            <td>{{ vali }}</td>
+                                            <td>{{ pairs_vali.0 }}</td>
+                                            <td>{{ pairs_vali.1 }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
-                    </a>
-                </div>
+                        <!-- /.table-responsive -->
+                        {% endfor %}
+                    </div><!-- /.panel-body -->
+                    <div class="panel-footer">
+                        <span class="pull-left">
+                            <i class="fa fa-question-circle fa-2x"></i>
+                        </span>
+                        <span>&nbsp;&nbsp;</span>
+                        NOTICE: Pairs is (Value > *).
+                        The ranking is fair to this value when number of current pairs is greater than estimates number of pairs!
+                        Values that are fair in the generated ranking have green background!
+                    </div>
+                 </div><!-- /.panel -->
             </div>
-        </div>
-        <!-- /row -->
+        </div><!-- /.row -->
+        {% endif %}
         <div class="row">
             <div class="col-lg-6">
                 <div class="panel panel-default">
@@ -183,8 +208,18 @@
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div class="form-inline" align="center">
-                            <a href="{% url 'dataflow:data_process' %}" class="btn btn-default">Previous step (Parameter settings)</a>
-                            <a href="{% url 'dataflow:base' %}" class="btn btn-default">Upload new data</a>
+                            {% if passed_unprocessing_flag %}
+                            <a href="{% url 'dataflow:data_process' %}" class="btn btn-default btn-lg">
+                                <span class="glyphicon glyphicon-menu-left"></span>
+                                Previous step (Parameter Settings)</a>
+                            {% else %}
+                            <a href="{% url 'dataflow:norm_process' %}" class="btn btn-default btn-lg">
+                                <span class="glyphicon glyphicon-menu-left"></span>
+                                Previous step (Parameter Settings)</a>
+                            {% endif %}
+                            <a href="{% url 'dataflow:base' %}" class="btn btn-default btn-lg">
+                                Upload new data
+                                <span class="glyphicon glyphicon-menu-right"></span></a>
                         </div>
                     </div>
                 </div>
@@ -195,27 +230,49 @@
     <!-- /#page-wrapper -->
 </div>
 <!-- /#wrapper -->
+<!-- validation for rank preview function when submit parameters-->
+<script type="text/javascript" language="javascript">
+    // validation check when click fairness check button
+    var all_att_ids = {{passed_column_ids | safe}};
+    function validateCheckedAtt() {
+        var choose_att_flag = "false";
+        for (i in all_att_ids) {
+           var checks_id = all_att_ids[i] + "_sensi_checks";
 
-<script type="text/javascript">
-    // show its constraint input when choose sensitive attribute
-    var all_atts = {{passed_column_name | safe}};
+           if (document.getElementById(checks_id).checked) {
+               choose_att_flag = "true";
+           }
+        }
+        if (choose_att_flag=="false") {
+            alert('You need to specify at least one sensitive attribute to check!');
+            return false;
+        }
+        else{
+           return true;
+        }
+    }//end of validation function
+</script>
+<!-- update users' checked boxes after user click fairness check button-->
+<script type="text/javascript" language="javascript">
+    var fair_table_flag={{passed_fair_table | safe}};
+    var choosed_atts_ids = {{passed_checked_atts_ids |safe}};
+
     $(document).ready(function () {
-        $('input[type="checkbox"]').click(function () {
-
-            for (i in all_atts) {
-                if (document.getElementById(all_atts[i]+"_sensi_checks").checked) {
-                    document.getElementById(all_atts[i]+"_constraint").style.display = 'inline';
-                }
-                else {
-                    document.getElementById(all_atts[i]+"_constraint").style.display = 'none';
-                }
-
-
+        if (fair_table_flag){
+            for (i in choosed_atts_ids) {
+                var checks_id = choosed_atts_ids[i]+"_sensi_checks";
+                document.getElementById(checks_id).checked = true;
             }
-
-        });
+        }
     });
-
+</script>
+<!-- toolip setting-->
+<script>
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip({
+        title: 'Pairs is (Value > *). The ranking is fair to this value when number of current pairs is greater than estimates number of pairs! Values that are fair in the generated ranking have green background!',
+    });
+});
 </script>
 <!-- Bootstrap Core JavaScript -->
 <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>

@@ -1,34 +1,37 @@
-from random import uniform
-
 import numpy as np
 import pandas as pd
 
+from DataSynthesizer.datatypes.utils.AttributeLoader import parse_json
 from DataSynthesizer.lib.utils import set_random_seed, read_json_file, generate_random_string
 
 
 class DataGenerator(object):
     def __init__(self):
         self.n = 0
-        self.synthetic_dataset = pd.DataFrame()
+        self.synthetic_dataset = None
+        self.description = {}
+        self.encoded_dataset = None
 
-    def generate_dataset_in_random_mode(self, n, description_file, seed=0):
+    def generate_dataset_in_random_mode(self, n, description_file, seed=0, minimum=0, maximum=100):
         set_random_seed(seed)
         description = read_json_file(description_file)
 
         self.synthetic_dataset = pd.DataFrame()
         for attr in description['attribute_description'].keys():
-            attr_description = description['attribute_description'][attr]
-            datatype = attr_description['datatype']
-            is_categorical = attr_description['is_categorical']
-            if is_categorical:
-                self.synthetic_dataset[attr] = np.random.choice(attr_description['distribution_bins'], n)
-            elif datatype == 'string':
-                length = np.random.randint(attr_description['min_length'], attr_description['max_length'])
+            attr_info = description['attribute_description'][attr]
+            datatype = attr_info['data_type']
+            is_categorical = attr_info['is_categorical']
+            is_candidate_key = attr_info['is_candidate_key']
+            if is_candidate_key:
+                self.synthetic_dataset[attr] = parse_json(attr_info).generate_values_as_candidate_key(n)
+            elif is_categorical:
+                self.synthetic_dataset[attr] = np.random.choice(attr_info['distribution_bins'], n)
+            elif datatype == 'String':
+                length = np.random.randint(attr_info['min'], attr_info['max'])
                 self.synthetic_dataset[attr] = length
                 self.synthetic_dataset[attr] = self.synthetic_dataset[attr].map(lambda x: generate_random_string(x))
             else:
-                minimum, maximum = attr_description['min'], attr_description['max']
-                if datatype == 'integer':
+                if datatype == 'Integer':
                     self.synthetic_dataset[attr] = np.random.randint(minimum, maximum + 1, n)
                 else:
                     self.synthetic_dataset[attr] = np.random.uniform(minimum, maximum, n)
@@ -37,45 +40,40 @@ class DataGenerator(object):
         set_random_seed(seed)
         self.description = read_json_file(description_file)
 
-        attributes = self.description['meta']['attribute_list']
-        self.encoded_dataset = pd.DataFrame(columns=attributes, index=list(range(n)))
-        for attr in attributes:
+        all_attributes = self.description['meta']['all_attributes']
+        candidate_keys = set(self.description['meta']['candidate_keys'])
+        self.synthetic_dataset = pd.DataFrame(columns=all_attributes)
+        for attr in all_attributes:
             attr_info = self.description['attribute_description'][attr]
-            bins = attr_info['distribution_bins']
-            probs = attr_info['distribution_probabilities']
-            self.encoded_dataset[attr] = np.random.choice(list(range(len(bins))), size=n, p=probs)
+            column = parse_json(attr_info)
 
-        self.sample_from_encoded_dataset()
+            if attr in candidate_keys:
+                self.synthetic_dataset[attr] = column.generate_values_as_candidate_key(n)
+            else:
+                binning_indices = column.sample_binning_indices_in_independent_attribute_mode(n)
+                self.synthetic_dataset[attr] = column.sample_values_from_binning_indices(binning_indices)
 
     def generate_dataset_in_correlated_attribute_mode(self, n, description_file, seed=0):
-        self.n = n
         set_random_seed(seed)
+        self.n = n
         self.description = read_json_file(description_file)
+
+        all_attributes = self.description['meta']['all_attributes']
+        candidate_keys = set(self.description['meta']['candidate_keys'])
         self.encoded_dataset = DataGenerator.generate_encoded_dataset(self.n, self.description)
-
-        for attr in self.description['meta']['ignored_attributes_by_BN']:
+        self.synthetic_dataset = pd.DataFrame(columns=all_attributes)
+        for attr in all_attributes:
             attr_info = self.description['attribute_description'][attr]
-            bins = attr_info['distribution_bins']
-            probs = attr_info['distribution_probabilities']
-            self.encoded_dataset[attr] = np.random.choice(list(range(len(bins))), size=n, p=probs)
+            column = parse_json(attr_info)
 
-        self.sample_from_encoded_dataset()
-
-    def sample_from_encoded_dataset(self):
-        self.synthetic_dataset = self.encoded_dataset.copy()
-        for attribute in self.synthetic_dataset:
-            datatype = self.description['attribute_description'][attribute]['datatype']
-            not_categorical = not self.description['attribute_description'][attribute]['is_categorical']
-            self.synthetic_dataset[attribute] = self.synthetic_dataset[attribute].apply(
-                lambda x: self.sample_uniformly_for_attribute(attribute, int(x)))
-            if datatype == 'integer':
-                self.synthetic_dataset[attribute] = self.synthetic_dataset[~self.synthetic_dataset[attribute].isnull()][
-                    attribute].astype(int)
-            elif datatype == 'string' and not_categorical:
-                self.synthetic_dataset[attribute] = self.synthetic_dataset[~self.synthetic_dataset[attribute].isnull()][
-                    attribute].map(lambda x: generate_random_string(int(x)))
-
-        self.synthetic_dataset = self.synthetic_dataset.loc[:, self.description['meta']['attribute_list']]
+            if attr in self.encoded_dataset:
+                self.synthetic_dataset[attr] = column.sample_values_from_binning_indices(self.encoded_dataset[attr])
+            elif attr in candidate_keys:
+                self.synthetic_dataset[attr] = column.generate_values_as_candidate_key(n)
+            else:
+                # for attributes not in BN or candidate keys, use independent attribute mode.
+                binning_indices = column.sample_binning_indices_in_independent_attribute_mode(n)
+                self.synthetic_dataset[attr] = column.sample_values_from_binning_indices(binning_indices)
 
     @staticmethod
     def get_sampling_order(bn):
@@ -113,16 +111,6 @@ class DataGenerator(object):
                                                                                  size=encoded_df[child].isnull().sum(),
                                                                                  p=unconditioned_distribution)
         return encoded_df
-
-    def sample_uniformly_for_attribute(self, attribute, idx):
-        dist = np.array(self.description['attribute_description'][attribute]['distribution_bins']).tolist()
-        if idx == len(dist):
-            return np.nan
-        elif self.description['attribute_description'][attribute]['is_categorical']:
-            return dist[idx]
-        else:
-            dist.append(2 * dist[-1] - dist[-2])
-            return uniform(dist[idx], dist[idx + 1])
 
     def save_synthetic_data(self, to_file):
         self.synthetic_dataset.to_csv(to_file, index=False)

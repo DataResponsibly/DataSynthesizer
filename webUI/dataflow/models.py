@@ -1,5 +1,5 @@
 import json
-
+import math
 import numpy as np
 import pandas as pd
 from DataSynthesizer.lib.utils import read_json_file
@@ -40,6 +40,32 @@ def compute_statistic(chosed_atts,current_file):
         statistic_data['topHundred'].append(formatted_att_info_topH)
     return statistic_data
 
+def computeFairPairs(checked_atts,current_file):
+    # input checked_atts includes names of checked sensitive attributes
+    data = pd.read_csv(current_file + "_weightsum.csv")
+    total_N = len(data)
+    res_json = {}
+    for si in checked_atts:
+        # get the unique value of this sensitive attribute
+        values_si_att = list (data[si].unique())
+        # for each value, compute the current pairs and estimated fair pairs
+        si_value_json = {}
+        for vi in values_si_att:
+            position_lists_val = data[data[si]==vi].index+1
+            size_vi = len(position_lists_val)
+            count_vi_prefered_pairs = 0
+            for i in range(len(position_lists_val)):
+                cur_position = position_lists_val[i]
+                left_vi = size_vi - (i + 1)
+                count_vi_prefered_pairs = count_vi_prefered_pairs + (total_N - cur_position - left_vi)
+            # compute estimated fair pairs
+            total_pairs_vi = size_vi*(total_N-size_vi)
+            estimated_vi_pair = math.ceil(size_vi / total_N * total_pairs_vi)
+            si_value_json[vi] = [count_vi_prefered_pairs,estimated_vi_pair]
+        res_json[si]=si_value_json
+    # return the result json with key is attribute name and value is the json of value counts
+    return res_json
+
 def generateRanking(current_file):
     ranks_file = current_file + "_rankings.json"
     rankings_paras = read_json_file(ranks_file)
@@ -54,7 +80,7 @@ def generateRanking(current_file):
     filled_data = filled_data.reindex_axis(['score'] + list([a for a in filled_data.columns if a != 'score']), axis=1)
     # save data with weight sum to a csv on server
     filled_data.sort_values(by="score",ascending=False,inplace=True)
-    filled_data.to_csv(current_file+"_weightsum.csv")
+    filled_data.to_csv(current_file+"_weightsum.csv", index=False)
     # display_data = data.head(100)
     return filled_data.to_json(orient='records')
 
