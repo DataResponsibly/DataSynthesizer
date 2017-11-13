@@ -18,18 +18,25 @@ class ModelInspector(object):
         self.synthetic_df = synthetic_df
         self.attribute_description = attribute_description
 
+        self.candidate_keys = set()
+        for attr in synthetic_df:
+            if synthetic_df[attr].unique().size == synthetic_df.shape[0]:
+                self.candidate_keys.add(attr)
+
     def compare_histograms(self, attribute):
-        datatype = self.attribute_description[attribute]['datatype']
+        datatype = self.attribute_description[attribute]['data_type']
         is_categorical = self.attribute_description[attribute]['is_categorical']
 
         # ignore datetime attributes, since they are converted into timestamps
-        if datatype == 'datetime':
+        if datatype == 'DateTime':
             return
         # ignore non-categorical string attributes
-        elif datatype == 'string' and not is_categorical:
+        elif datatype == 'String' and not is_categorical:
+            return
+        elif attribute in self.candidate_keys:
             return
         else:
-            fig = plt.figure(figsize=(15, 5))
+            fig = plt.figure(figsize=(15, 5), dpi=120)
             ax1 = fig.add_subplot(121)
             ax2 = fig.add_subplot(122)
 
@@ -75,7 +82,7 @@ class ModelInspector(object):
         private_mi = pairwise_attributes_mutual_information(self.private_df)
         synthetic_mi = pairwise_attributes_mutual_information(self.synthetic_df)
 
-        fig = plt.figure(figsize=(15, 6))
+        fig = plt.figure(figsize=(15, 6), dpi=120)
         fig.suptitle('Pairwise Mutual Information Comparison (Private vs Synthetic)', fontsize=20)
         ax1 = fig.add_subplot(121)
         ax2 = fig.add_subplot(122)
