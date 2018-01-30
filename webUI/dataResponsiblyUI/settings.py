@@ -29,7 +29,7 @@ ALLOWED_HOSTS = ['waltz.cci.drexel.edu', '127.0.0.1', '0.0.0.0']
 # Application definition
 
 INSTALLED_APPS = [
-    'dataflow.apps.DataflowConfig',
+    # 'dataflow.apps.DataflowConfig',
     'synthesizer.apps.SynthesizerConfig',
     'django.contrib.admin',
     'django.contrib.auth',

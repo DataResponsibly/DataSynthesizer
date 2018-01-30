@@ -19,7 +19,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 
 urlpatterns = [
-    url(r'^dataflow/', include('dataflow.urls')),
+    # url(r'^dataflow/', include('dataflow.urls')),
     url(r'^synthesizer/', include('synthesizer.urls')),
     url(r'^admin/', admin.site.urls),
 
