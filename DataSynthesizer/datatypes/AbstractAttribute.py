@@ -90,7 +90,7 @@ class AbstractAttribute(object):
 
     def sample_binning_indices_in_independent_attribute_mode(self, n):
         """ Sample an array of binning indices. """
-        return pd.Series(choice(np.arange(self.histogram_size), size=n, p=self.distribution_probabilities))
+        return pd.Series(choice(len(self.distribution_probabilities), size=n, p=self.distribution_probabilities))
 
     @abstractmethod
     def sample_values_from_binning_indices(self, binning_indices):

@@ -17,4 +17,4 @@ class FloatAttribute(AbstractAttribute):
         return np.arange(self.min, self.max, (self.min - self.max) / n)
 
     def sample_values_from_binning_indices(self, binning_indices):
-        return super().sample_binning_indices_in_independent_attribute_mode(binning_indices)
+        return super().sample_values_from_binning_indices(binning_indices)
