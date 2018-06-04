@@ -87,7 +87,7 @@ class DataGenerator(object):
         bn = description['bayesian_network']
         bn_root_attr = bn[0][1][0]
         root_attr_dist = description['conditional_probabilities'][bn_root_attr]
-        encoded_df = pd.DataFrame(columns=DataGenerator.get_sampling_order(bn), dtype=int)
+        encoded_df = pd.DataFrame(columns=DataGenerator.get_sampling_order(bn))
         encoded_df[bn_root_attr] = np.random.choice(len(root_attr_dist), size=n, p=root_attr_dist)
 
         for child, parents in bn:
@@ -110,6 +110,7 @@ class DataGenerator(object):
             encoded_df.loc[encoded_df[child].isnull(), child] = np.random.choice(len(unconditioned_distribution),
                                                                                  size=encoded_df[child].isnull().sum(),
                                                                                  p=unconditioned_distribution)
+        encoded_df[encoded_df.columns] = encoded_df[encoded_df.columns].astype(int)
         return encoded_df
 
     def save_synthetic_data(self, to_file):
