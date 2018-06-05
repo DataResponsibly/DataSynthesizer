@@ -51,10 +51,11 @@ class AbstractAttribute(object):
             self.distribution_bins = bins
 
     def inject_laplace_noise(self, epsilon=0.1, num_valid_attributes=10):
-        noisy_scale = num_valid_attributes / (epsilon * self.data.size)
-        laplace_noises = np.random.laplace(0, scale=noisy_scale, size=len(self.distribution_probabilities))
-        noisy_distribution = np.asarray(self.distribution_probabilities) + laplace_noises
-        self.distribution_probabilities = utils.normalize_given_distribution(noisy_distribution).tolist()
+        if epsilon > 0:
+            noisy_scale = num_valid_attributes / (epsilon * self.data.size)
+            laplace_noises = np.random.laplace(0, scale=noisy_scale, size=len(self.distribution_probabilities))
+            noisy_distribution = np.asarray(self.distribution_probabilities) + laplace_noises
+            self.distribution_probabilities = utils.normalize_given_distribution(noisy_distribution).tolist()
 
     def encode_values_into_binning_indices(self):
         """ Encode values into binning indices for distribution modeling."""
