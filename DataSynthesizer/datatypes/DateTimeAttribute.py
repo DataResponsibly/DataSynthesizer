@@ -53,7 +53,8 @@ class DateTimeAttribute(AbstractAttribute):
         self.data = column
         self.data_dropna = self.data.dropna()
         self.missing_rate = (self.data.size - self.data_dropna.size) / self.data.size
-        timestamps = self.data_dropna.map(lambda x: parse(x).timestamp())
+        epoch_datetime = parse('1970-01-01')
+        timestamps = self.data_dropna.map(lambda x: int((parse(x)-epoch_datetime).total_seconds()))
         self.min = float(timestamps.min())
         self.max = float(timestamps.max())
 
@@ -73,4 +74,6 @@ class DateTimeAttribute(AbstractAttribute):
         return np.arange(self.min, self.max, (self.min - self.max) / n)
 
     def sample_values_from_binning_indices(self, binning_indices):
-        return super().sample_binning_indices_in_independent_attribute_mode(binning_indices)
+        column = super().sample_values_from_binning_indices(binning_indices)
+        column[~column.isnull()] = column[~column.isnull()].astype(int)
+        return column
