@@ -99,6 +99,7 @@ class AbstractAttribute(object):
         return  binning_indices.apply(lambda x: self.uniform_sampling_within_a_bin(x))
 
     def uniform_sampling_within_a_bin(self, binning_index):
+        binning_index = int(binning_index)
         if binning_index == len(self.distribution_bins):
             return np.nan
         elif self.is_categorical:
