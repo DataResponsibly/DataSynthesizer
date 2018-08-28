@@ -51,10 +51,11 @@ class AbstractAttribute(object):
             self.distribution_bins = bins
 
     def inject_laplace_noise(self, epsilon=0.1, num_valid_attributes=10):
-        noisy_scale = num_valid_attributes / (epsilon * self.data.size)
-        laplace_noises = np.random.laplace(0, scale=noisy_scale, size=len(self.distribution_probabilities))
-        noisy_distribution = np.asarray(self.distribution_probabilities) + laplace_noises
-        self.distribution_probabilities = utils.normalize_given_distribution(noisy_distribution).tolist()
+        if epsilon > 0:
+            noisy_scale = num_valid_attributes / (epsilon * self.data.size)
+            laplace_noises = np.random.laplace(0, scale=noisy_scale, size=len(self.distribution_probabilities))
+            noisy_distribution = np.asarray(self.distribution_probabilities) + laplace_noises
+            self.distribution_probabilities = utils.normalize_given_distribution(noisy_distribution).tolist()
 
     def encode_values_into_binning_indices(self):
         """ Encode values into binning indices for distribution modeling."""
@@ -90,7 +91,7 @@ class AbstractAttribute(object):
 
     def sample_binning_indices_in_independent_attribute_mode(self, n):
         """ Sample an array of binning indices. """
-        return pd.Series(choice(np.arange(self.histogram_size), size=n, p=self.distribution_probabilities))
+        return pd.Series(choice(len(self.distribution_probabilities), size=n, p=self.distribution_probabilities))
 
     @abstractmethod
     def sample_values_from_binning_indices(self, binning_indices):
@@ -98,6 +99,7 @@ class AbstractAttribute(object):
         return  binning_indices.apply(lambda x: self.uniform_sampling_within_a_bin(x))
 
     def uniform_sampling_within_a_bin(self, binning_index):
+        binning_index = int(binning_index)
         if binning_index == len(self.distribution_bins):
             return np.nan
         elif self.is_categorical:

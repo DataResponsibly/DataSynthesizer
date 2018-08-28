@@ -14,7 +14,7 @@ class FloatAttribute(AbstractAttribute):
         super().infer_domain(column)
 
     def generate_values_as_candidate_key(self, n):
-        return np.arange(self.min, self.max, (self.min - self.max) / n)
+        return np.arange(self.min, self.max, (self.max - self.min) / n)
 
     def sample_values_from_binning_indices(self, binning_indices):
-        return super().sample_binning_indices_in_independent_attribute_mode(binning_indices)
+        return super().sample_values_from_binning_indices(binning_indices)

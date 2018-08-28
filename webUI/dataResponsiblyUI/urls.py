@@ -17,9 +17,12 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
+from . import views
 
 urlpatterns = [
-    # url(r'^dataflow/', include('dataflow.urls')),
+    url(r'^$', views.base, name='base'),
+    # url(r'^rankingfacts/', include('rankingfacts.urls')),
+   # url(r'^dataflow/', include('dataflow.urls')),
     url(r'^synthesizer/', include('synthesizer.urls')),
     url(r'^admin/', admin.site.urls),
 

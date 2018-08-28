@@ -24,12 +24,12 @@ SECRET_KEY = '*^wntix=r#+730*d0x)q!kbjsjl&ti+-w&mq-5h$o_4v#q-d*-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['waltz.cci.drexel.edu', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['demo.dataresponsibly.com','ec2-34-231-15-30.compute-1.amazonaws.com','dataresdjangoserver-649693535.us-east-1.elb.amazonaws.com','10.0.1.252','127.0.0.1']
 
 # Application definition
 
 INSTALLED_APPS = [
-    # 'dataflow.apps.DataflowConfig',
+    # 'rankingfacts.apps.RankingfactsConfig',
     'synthesizer.apps.SynthesizerConfig',
     'django.contrib.admin',
     'django.contrib.auth',

@@ -4,7 +4,9 @@
 **/__pycache__/
 **/.ipynb_checkpoints/
 
-
 webUI/media/*.json
 webUI/media/*.csv
 
+**/db\.sqlite3
+
+**/\.DS_Store

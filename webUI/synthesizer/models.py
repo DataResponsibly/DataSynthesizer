@@ -41,7 +41,16 @@ def get_json_from_file(file_name):
     with open(file_name, 'r') as myfile:
         json_data = myfile.read().replace('\n', '')
     return json_data
+def getSizeOfDataset(current_file):
+    """
+    Compute number of rows in the input data.
 
+    Attributes:
+        current_file: file name that stored the data (with out ".csv" suffix)
+    Return:  number of rows in current_file
+    """
+    data = pd.read_csv(current_file+".csv")
+    return len(data)
 
 class DataDescriberUI(object):
     """Analyze input dataset, then save the dataset description in a JSON file.

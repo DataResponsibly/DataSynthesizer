@@ -3,11 +3,9 @@
     <!-- Bootstrap Core CSS -->
     <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 
-    <!-- MetisMenu CSS -->
-    <link href="{% static 'metisMenu/metisMenu.min.css' %}" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="{% static 'sbadmin/css/sb-admin-2.css' %}" rel="stylesheet">
+    <link href="{% static 'sbadmin/css/sb-admin-2-original.css' %}" rel="stylesheet">
 
 
     <!-- Custom Fonts -->
@@ -15,22 +13,15 @@
     <!-- DataTables CSS -->
     <link href="{% static 'datatables-plugins/dataTables.bootstrap.css' %}" rel="stylesheet">
 
-    <!-- DataTables Responsive CSS -->
-    <link href="{% static 'datatables-responsive/dataTables.responsive.css' %}" rel="stylesheet">
 
     <link href="{% static 'others/css/landing-page.css' %}" rel="stylesheet">
 
     <!-- jQuery -->
     <script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
-    <!-- Bootstrap Core JavaScript -->
-    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
-    <!-- Metis Menu Plugin JavaScript -->
-    <script src="{% static 'metisMenu/metisMenu.min.js' %}"></script>
-
-    <!-- DataTables JavaScript -->
+    <!-- dataTable -->
+    <link href="{% static 'datatables/media/css/jquery.dataTables.css' %}" rel="stylesheet">
     <script src="{% static 'datatables/media/js/jquery.dataTables.js' %}"></script>
-    <script src="{% static 'datatables-plugins/dataTables.bootstrap.min.js' %}"></script>
-    <script src="{% static 'datatables-responsive/dataTables.responsive.js' %}"></script>
+
     <!-- Highcharts JavaScript -->
     <script src="{% static 'highcharts/code/highcharts.js' %}"></script>
     <script src="{% static 'highcharts/code/modules/exporting.js' %}"></script>
@@ -126,10 +117,12 @@
                     </div>
                     <!-- /.panel-heading -->
                     <div class="panel-body">
-                        <table width="100%" class="table table-striped table-bordered table-hover"
-                               id="data_table_original">
-                            <thead>
-                            </thead>
+                        <!--<table width="100%" class="table table-striped table-bordered table-hover"-->
+                               <!--id="data_table_original">-->
+                            <!--<thead>-->
+                            <!--</thead>-->
+                        <!--</table>-->
+                        <table id="data_table_original" class="display nowrap" cellspacing="0" width="100%">
                         </table>
                     </div>
                     <!-- /.panel-body -->
@@ -145,10 +138,12 @@
                     </div>
                     <!-- /.panel-heading -->
                     <div class="panel-body">
-                        <table width="100%" class="table table-striped table-bordered table-hover"
-                               id="data_table_synthetic">
-                            <thead>
-                            </thead>
+                        <!--<table width="100%" class="table table-striped table-bordered table-hover"-->
+                               <!--id="data_table_synthetic">-->
+                            <!--<thead>-->
+                            <!--</thead>-->
+                        <!--</table>-->
+                        <table id="data_table_synthetic" class="display nowrap" cellspacing="0" width="100%">
                         </table>
                     </div>
                     <!-- /.panel-body -->
@@ -182,47 +177,32 @@
     //highlight data comparison link
     $("#data_com_link").trigger('click');
 
-    var table_header = {{passed_column_name | safe}};
-
-
-    $('#data_table_original > thead').append('<tr>');
-    for (i in table_header) {
-        $('#data_table_original > thead').append('<th>' + table_header[i] + '</th>');
-    }
-    ;
-    $('#data_table_original > thead').append('</tr>');
-
     $(document).ready(function () {
-        $('#data_table_original').DataTable({
-            "ajax": {
+        $('#data_table_original').dataTable({
+            ajax: {
                 "url": "{% url 'synthesizer:res_json_processing' %}",
                 "dataSrc": ""
             },
-            "columns": {{passed_json_columns | safe}},
-            responsive: true
+            columns: {{passed_json_columns | safe}},
+            columnDefs: {{passed_json_columns_header | safe}},
+            order: [[ 0, "desc" ]],
+            scrollX: true,
         });
-    });
-    $('#data_table_synthetic > thead').append('<tr>');
-    for (i in table_header) {
-        $('#data_table_synthetic > thead').append('<th>' + table_header[i] + '</th>');
-    }
-    ;
-    $('#data_table_synthetic > thead').append('</tr>');
-
-    $(document).ready(function () {
         $('#data_table_synthetic').DataTable({
             "ajax": {
                 "url": "{% url 'synthesizer:res_json_processing_after' %}",
                 "dataSrc": ""
             },
-            "columns": {{passed_json_columns | safe}},
-            responsive: true
+            columns: {{passed_json_columns | safe}},
+            columnDefs: {{passed_json_columns_header | safe}},
+            order: [[ 0, "desc" ]],
+            scrollX: true,
         });
+
     });
 
 </script>
 
-<!-- Custom Theme JavaScript -->
-<script src="{% static 'sbadmin/js/sb-admin-2.js' %}"></script>
-
+<!-- Bootstrap Core JavaScript -->
+<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 </body>

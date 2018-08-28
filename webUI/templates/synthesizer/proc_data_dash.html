@@ -7,10 +7,7 @@
     <link href="{% static 'metisMenu/metisMenu.min.css' %}" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="{% static 'sbadmin/css/sb-admin-2.css' %}" rel="stylesheet">
-
-    <!-- Morris Charts CSS -->
-    <link href="{% static 'morrisjs/morris.css' %}" rel="stylesheet">
+    <link href="{% static 'sbadmin/css/sb-admin-2-original.css' %}" rel="stylesheet">
 
     <!-- Custom Fonts -->
     <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
@@ -72,9 +69,7 @@
                         </h4>
                     </div>
                     <div class="panel-body">
-                        <table id="proc_data_table" class="display">
-                            <thead>
-                            </thead>
+                        <table id="proc_data_table" class="display nowrap" cellspacing="0" width="100%">
                         </table>
                     </div>
                 </div>
@@ -320,6 +315,7 @@
 <script type="text/javascript" language="javascript">
     // get column names, detected categorical attributes and detected data type for each attribute
     var table_header = {{passed_column_name | safe}};
+
     var cate_atts =
         {{ passed_cat_atts | safe }};
     var data_type_atts =
@@ -471,21 +467,16 @@
     ;
     $('#att_type_m3').append('</div>');
 
-    // create data table by request a json data
-    $('#proc_data_table > thead').append('<tr>');
-    for (i in table_header) {
-        $('#proc_data_table > thead').append('<th>' + table_header[i] + '</th>');
-    }
-
-    $('#proc_data_table > thead').append('</td>');
-
     $(document).ready(function () {
         $('#proc_data_table').dataTable({
             "ajax": {
                 "url": "{% url 'synthesizer:proc_json_processing' %}",
                 "dataSrc": ""
             },
-            "columns": {{passed_json_columns | safe}}
+            columns: {{passed_json_columns | safe}},
+            columnDefs: {{passed_json_columns_header | safe}},
+            order: [[ 0, "desc" ]],
+            scrollX: true,
         });
     });
 
@@ -495,10 +486,10 @@
 <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 
 <!-- Metis Menu Plugin JavaScript -->
-<script src="{% static 'metisMenu/metisMenu.min.js' %}"></script>
+<!--<script src="{% static 'metisMenu/metisMenu.min.js' %}"></script>-->
 
 
 <!-- Custom Theme JavaScript -->
-<script src="{% static 'sbadmin/js/sb-admin-2.js' %}"></script>
+<!--<script src="{% static 'sbadmin/js/sb-admin-2.js' %}"></script>-->
 
 </body>

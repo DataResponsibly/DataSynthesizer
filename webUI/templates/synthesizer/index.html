@@ -16,10 +16,13 @@
     <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'others/css/fileinput.min.css' %}" rel="stylesheet">
     <link href="{% static 'others/css/landing-page.css' %}" rel="stylesheet">
+    <!-- bootstrap-select -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.6.3/css/bootstrap-select.min.css" />
     <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet"
           type="text/css">
-    <link href="{% static 'datatables/media/css/jquery.dataTables.css' %}" rel="stylesheet">
+    <script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 </head>
 
 <body>
@@ -40,14 +43,24 @@
                     <div class="intro-message">
                         <h1>Data Synthesizer</h1>
                         <hr class="intro-divider">
-                        <form id="file_upload" onsubmit="return validateUploadFile()" action="{% url 'synthesizer:index_data' %}" method="post"
-                              enctype="multipart/form-data">{% csrf_token %}
-                            <div><input id="upload_file" type="file" class="filestyle" data-icon="false" name="csv_file"></div>
+                        <form method="post" enctype="multipart/form-data">{% csrf_token %}
+                            <h2>Upload your own data</h2>
+                            <input id="file_upload" type="file" accept=".csv" class="filestyle" data-icon="false" name="user_upload_data" onchange='triggerValidation(this)' />
                             <br>
-                            <input id="upload_btn" class="btn btn-default btn-lg top-buffer" aria-haspopup="true"
-                                   aria-expanded="false" type="submit" value="Upload"/>
-                        </form>
+                            <h2>OR</h2>
+                            <br>
+                            <h2>Play with our test data <span>&nbsp;&nbsp;</span> <a style="color: #0f0f0f" data-toggle="tooltip" data-placement="right"><i class="fa fa-question-circle fa-1x"></i></a></h2>
+                            <select id="dataset_select" name="dataset_select" class="selectpicker">
+                                {% for datai in passed_play_data %}
+                                 <option value="{{ datai | safe }}">{{ datai }}</option>
+                                {% endfor %}
+                            </select>
 
+
+                            <span><br><br><br><br></span>
+                            <input id="upload_btn" class="btn btn-default btn-lg top-buffer" aria-haspopup="true"
+                                   aria-expanded="false" type="submit" value="Upload Data"/>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -59,7 +72,7 @@
     <div class="container_footer">
         <footer class="main_footer">
             <p class="text-muted">
-                &copy; 2017 <a href="https://github.com/DataResponsibly/DataSynthesizer"> Data Synthesizer </a>
+                &copy; 2017 <a href="https://github.com/DataResponsibly/DataSynthesizer"> Data Synthesizer GitHub</a>
                 | <a href="https://dataresponsibly.github.io">Data Responsibly</a>
                 | <a href="https://dataresponsibly.github.io/contact/">Contact Us</a>
             </p>
@@ -80,25 +93,43 @@
 
 </style>
 
-<script>
-    function validateUploadFile() {
-        if ($('#upload_file').val()) {
-            return true;
-        } else {
-           alert("Upload file first!");
-           return false;
-        }
+<!-- play data toolip setting-->
+<script type="text/javascript" language="javascript">
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip({
+        title: "All the test datasets here are sample datasets. The original datasets can be found in our GitHub repository. Check the code link in the footer of this page!",
+        });
+});
+</script>
+<!-- if upload data size less than threshold, then alert user to upload new data or leave it blank use test data-->
+<script type="text/javascript" language="JavaScript">
+    // validate upload data size
+    var data_size_flag = {{passed_size_flag | safe}};
+    if (data_size_flag == false){
+        alert("You need to upload a data set that has more than 20 rows! Or leave it blank to use our test data!");
     }
 </script>
+<!-- if upload data is not .csv file, then alert user to upload new data or leave it blank to use test data-->
+<script type="text/javascript" language="javascript">
+    // for browser that does not support .csv accept
+    var regex = new RegExp("(.*?)\.(csv)$");
+
+    function triggerValidation(el) {
+      if (!(regex.test(el.value.toLowerCase()))) {
+        el.value = '';
+        alert('Please upload a .csv file!');
+      }
+    }
+
+</script>
+
 
 
 <!-- JavaScript -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="{% static 'jquery/jquery-3.2.1.min.js' %}"></script>
-<script src="{% static 'datatables/media/js/jquery.dataTables.js' %}"></script>
-<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 <script src="{% static 'others/js/bootstrap-filestyle.min.js' %}"></script>
 <script src="{% static 'others/js/fileinput.min.js' %}"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.6.3/js/bootstrap-select.min.js"></script>
 
 </body>
 </html>

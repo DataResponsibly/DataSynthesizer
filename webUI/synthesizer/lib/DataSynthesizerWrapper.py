@@ -155,6 +155,15 @@ def get_categorical_attributes_csv(input_file_name, categorical_threshold=20):
             categorical_attributes.append(attr)
     return categorical_attributes
 
+def get_binary_attributes_csv(input_file_name, categorical_threshold=2):
+    # get the categorical attributes using data describer
+    df = pd.read_csv(input_file_name)
+    binary_attributes = []
+
+    for attr in df:
+        if df[attr].dropna().unique().size == categorical_threshold:
+            binary_attributes.append(attr)
+    return binary_attributes
 
 def get_categorical_attributes(plot_json_file):
     plot_data = read_json_file(plot_json_file)
@@ -211,7 +220,8 @@ def get_histograms_of(input_dataset_file, categorical_threshold=20):
     categorical_attributes = []
     attribute_information = {'all_atts': all_attributes,
                              'drawable_atts': drawable_attributes,
-                             'cate_atts': categorical_attributes}
+                             'cate_atts': categorical_attributes,
+                             "numeric_atts":numeric_attributes}
 
     for attr in df:
         if df[attr].dropna().unique().size <= categorical_threshold:

@@ -1,0 +1,52 @@
+CSRankingAllArea,College Name,PubCount,Faculty,GRE,DeptSizeBin,Regional Code
+1,Carnegie Mellon University,18.3,122,791.376,Large,NE
+2,Massachusetts Institute of Technology,15,64,771.894,Large,NE
+3,Stanford University,14.3,55,800,Large,W
+4,University of California--Berkeley,11.4,50,789.451,Large,W
+5,University of Illinois--Urbana-Champaign,10.5,55,771.894,Large,MW
+6,University of Washington,10.3,50,795.976,Large,W
+7,Georgia Institute of Technology,8.9,81,796.532,Large,SA
+8,University of California--San Diego,7.8,49,796.986,Large,W
+9,Cornell University,6.9,45,800,Large,NE
+10,University of Michigan,6.8,63,800,Large,MW
+11,University of Texas--Austin,6.6,43,789.15,Large,SC
+12,Columbia University,6.3,49,788.197,Large,NE
+13,University of Massachusetts--Amherst,6.2,47,796,Large,NE
+14,University of Maryland--College Park,5.5,42,791.237,Large,SA
+15,University of Wisconsin--Madison,5.1,35,792.955,Large,MW
+16,University of Southern California,4.4,47,792.951,Large,W
+17,University of California--Los Angeles,4.3,32,797.263,Large,W
+18,Northeastern University,4,46,797.429,Large,NE
+19,Purdue University--West Lafayette,3.6,42,771.894,Large,MW
+20,Harvard University,3.4,29,793.704,Small,NE
+20,University of Pennsylvania,3.4,32,800,Large,NE
+22,University of California--Santa Barbara,3.2,28,792.982,Small,W
+22,Princeton University,3.2,27,796.458,Small,NE
+24,New York University,3,29,795.61,Small,NE
+24,Ohio State University,3,39,798.061,Large,MW
+26,University of California--Davis,2.9,27,770.617,Small,W
+27,Rutgers The State University of New Jersey--New Brunswick,2.8,33,757.813,Large,NE
+27,University of Minnesota--Twin Cities,2.8,37,777.113,Large,MW
+29,Brown University,2.5,24,768.32,Small,NE
+30,Northwestern University,2.4,35,787.083,Large,MW
+31,Pennsylvania State University,2.3,28,789.677,Small,NE
+31,Texas A&M University--College Station,2.3,36,774.6,Large,SC
+33,State University of New York--Stony Brook,2.2,33,795.517,Large,NE
+33,Indiana University--Bloomington,2.2,35,764.737,Large,MW
+33,Duke University,2.2,22,800,Small,SA
+33,Rice University,2.2,18,800,Small,SC
+37,University of Utah,2.1,29,776.407,Small,W
+37,Johns Hopkins University,2.1,24,766.385,Small,SA
+39,University of Chicago,2,28,779.259,Small,MW
+40,University of California--Irvine,1.9,28,787.304,Small,W
+41,Boston University,1.6,15,782.5,Small,NE
+41,University of Colorado--Boulder,1.6,32,761.111,Large,W
+41,University of North Carolina--Chapel Hill,1.6,22,794.342,Small,SA
+41,Dartmouth College,1.6,18,793.846,Small,NE
+45,Yale University,1.5,18,800,Small,NE
+45,University of Virginia,1.5,18,788.538,Small,SA
+45,University of Rochester,1.5,18,786.026,Small,NE
+48,Arizona State University,1.4,14,787.164,Small,W
+48,University of Arizona,1.4,18,784.118,Small,W
+48,Virginia Polytechnic Institute and State University,1.4,32,780,Large,SA
+48,Washington University in St. Louis,1.4,17,790,Small,MW
