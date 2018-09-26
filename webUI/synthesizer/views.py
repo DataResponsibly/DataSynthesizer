@@ -22,7 +22,7 @@ def index(request):
     # create a time stamp for current uploading
     data_server_path = "./media/"
     play_data_server_path = "./playdata/synthesizer/"
-    cur_time_stamp = str(time())
+    cur_time_stamp = str(int(time()*1e7))
     upload_data_size_threshold = 20
     if request.POST:
         if request.FILES:
@@ -195,8 +195,8 @@ def com_data(request):
     description_file = passed_data_name + "_description.json"
     wrapper.get_plot_data(passed_data_name + ".csv", synthetic_data_name, description_file)
 
-    passed_download_data = synthetic_data_name.replace("/home/ec2-user/dataResponsiblyUI/media/", "")
-    passed_download_desp = description_file.replace("/home/ec2-user/dataResponsiblyUI/media/", "")
+    passed_download_data = synthetic_data_name.split("/media/")[1]
+    passed_download_desp = description_file.split("/media/")[1]
 
     request.session["passed_download_data"] = passed_download_data
     request.session["passed_download_desp"] = passed_download_desp

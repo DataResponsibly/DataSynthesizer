@@ -88,7 +88,7 @@ def generate_data(username):
         if configuration['epsilon'] == '':
             epsilon = 0.1
         else:
-            epsilon = configuration['epsilon']
+            epsilon = float(configuration['epsilon'])
 
         attribute_to_datatype = configuration['type_atts']
 

@@ -159,7 +159,7 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
     data['count'] = 1
     stats = data.groupby(attributes).sum()
 
-    iterables = [list(range(encoded_dataset[attr].max()+1)) for attr in attributes]
+    iterables = [range(encoded_dataset[attr].max()+1) for attr in attributes]
     full_space = pd.DataFrame(columns=attributes, data=list(product(*iterables)))
     stats.reset_index(inplace=True)
     stats = pd.merge(full_space, stats, how='left')

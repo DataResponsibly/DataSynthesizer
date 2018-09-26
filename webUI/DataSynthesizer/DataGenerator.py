@@ -98,9 +98,9 @@ class DataGenerator(object):
 
                 filter_condition = ''
                 for parent, value in zip(parents, parents_instance):
-                    filter_condition += '({0}["{1}"]=={2}) & '.format('encoded_df', parent, value)
+                    filter_condition += f"(encoded_df['{parent}']=={value})&"
 
-                filter_condition = eval(filter_condition[:-3])
+                filter_condition = eval(filter_condition[:-1])
 
                 size = encoded_df[filter_condition].shape[0]
                 if size:
