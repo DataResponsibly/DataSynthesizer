@@ -45,10 +45,12 @@ class ModelInspector(object):
                 dist_synt = self.synthetic_df[attribute].value_counts()
                 for idx, number in dist_priv.iteritems():
                     if idx not in dist_synt.index:
-                        dist_synt[idx] = 0
+                        dist_synt.loc[idx] = 0
                 for idx, number in dist_synt.iteritems():
                     if idx not in dist_priv.index:
-                        dist_priv[idx] = 0
+                        dist_priv.loc[idx] = 0
+                dist_priv.index = [str(i) for i in dist_priv.index]
+                dist_synt.index = [str(i) for i in dist_synt.index]
                 dist_priv.sort_index(inplace=True)
                 dist_synt.sort_index(inplace=True)
                 pos_priv = list(range(len(dist_priv)))
