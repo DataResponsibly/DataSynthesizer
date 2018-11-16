@@ -1,9 +1,9 @@
 import numpy as np
 from pandas import Series
 
-from DataSynthesizer.datatypes.AbstractAttribute import AbstractAttribute
-from DataSynthesizer.datatypes.utils.DataType import DataType
-from DataSynthesizer.lib import utils
+from datatypes.AbstractAttribute import AbstractAttribute
+from datatypes.utils.DataType import DataType
+from lib import utils
 
 
 class StringAttribute(AbstractAttribute):

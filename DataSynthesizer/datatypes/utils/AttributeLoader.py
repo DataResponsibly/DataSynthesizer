@@ -1,9 +1,9 @@
-from DataSynthesizer.datatypes.DateTimeAttribute import DateTimeAttribute
-from DataSynthesizer.datatypes.FloatAttribute import FloatAttribute
-from DataSynthesizer.datatypes.IntegerAttribute import IntegerAttribute
-from DataSynthesizer.datatypes.SocialSecurityNumberAttribute import SocialSecurityNumberAttribute
-from DataSynthesizer.datatypes.StringAttribute import StringAttribute
-from DataSynthesizer.datatypes.utils.DataType import DataType
+from datatypes.DateTimeAttribute import DateTimeAttribute
+from datatypes.FloatAttribute import FloatAttribute
+from datatypes.IntegerAttribute import IntegerAttribute
+from datatypes.SocialSecurityNumberAttribute import SocialSecurityNumberAttribute
+from datatypes.StringAttribute import StringAttribute
+from datatypes.utils.DataType import DataType
 
 
 def parse_json(attribute_in_json):

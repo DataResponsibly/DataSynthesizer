@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from numpy.random import choice
 
-from DataSynthesizer.lib import utils
+from lib import utils
 
 
 class AbstractAttribute(object):
@@ -96,7 +96,7 @@ class AbstractAttribute(object):
     @abstractmethod
     def sample_values_from_binning_indices(self, binning_indices):
         """ Convert binning indices into values in domain. Used by both independent and correlated attribute mode. """
-        return  binning_indices.apply(lambda x: self.uniform_sampling_within_a_bin(x))
+        return binning_indices.apply(lambda x: self.uniform_sampling_within_a_bin(x))
 
     def uniform_sampling_within_a_bin(self, binning_index):
         binning_index = int(binning_index)

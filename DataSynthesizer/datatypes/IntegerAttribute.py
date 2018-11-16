@@ -1,5 +1,5 @@
-from DataSynthesizer.datatypes.AbstractAttribute import AbstractAttribute
-from DataSynthesizer.datatypes.utils.DataType import DataType
+from datatypes.AbstractAttribute import AbstractAttribute
+from datatypes.utils.DataType import DataType
 
 
 class IntegerAttribute(AbstractAttribute):

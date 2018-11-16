@@ -2,9 +2,9 @@ import numpy as np
 from dateutil.parser import parse
 from pandas import Series
 
-from DataSynthesizer.datatypes.AbstractAttribute import AbstractAttribute
-from DataSynthesizer.datatypes.utils.DataType import DataType
-from DataSynthesizer.lib.utils import normalize_given_distribution
+from datatypes.AbstractAttribute import AbstractAttribute
+from datatypes.utils.DataType import DataType
+from lib.utils import normalize_given_distribution
 
 
 def is_datetime(date_string):
@@ -54,7 +54,7 @@ class DateTimeAttribute(AbstractAttribute):
         self.data_dropna = self.data.dropna()
         self.missing_rate = (self.data.size - self.data_dropna.size) / self.data.size
         epoch_datetime = parse('1970-01-01')
-        timestamps = self.data_dropna.map(lambda x: int((parse(x)-epoch_datetime).total_seconds()))
+        timestamps = self.data_dropna.map(lambda x: int((parse(x) - epoch_datetime).total_seconds()))
         self.min = float(timestamps.min())
         self.max = float(timestamps.max())
 

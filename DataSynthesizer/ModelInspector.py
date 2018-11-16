@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from DataSynthesizer.lib.utils import pairwise_attributes_mutual_information
+from lib.utils import pairwise_attributes_mutual_information
 
 matplotlib.rc('xtick', labelsize=20)
 matplotlib.rc('ytick', labelsize=20)

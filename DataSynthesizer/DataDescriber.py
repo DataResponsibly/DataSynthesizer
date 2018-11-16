@@ -3,15 +3,15 @@ import json
 import numpy as np
 import pandas as pd
 
-import DataSynthesizer.lib.utils as utils
-from DataSynthesizer.datatypes.AbstractAttribute import AbstractAttribute
-from DataSynthesizer.datatypes.DateTimeAttribute import is_datetime, DateTimeAttribute
-from DataSynthesizer.datatypes.FloatAttribute import FloatAttribute
-from DataSynthesizer.datatypes.IntegerAttribute import IntegerAttribute
-from DataSynthesizer.datatypes.SocialSecurityNumberAttribute import is_ssn, SocialSecurityNumberAttribute
-from DataSynthesizer.datatypes.StringAttribute import StringAttribute
-from DataSynthesizer.datatypes.utils.DataType import DataType
-from DataSynthesizer.lib.PrivBayes import greedy_bayes, construct_noisy_conditional_distributions
+from datatypes.AbstractAttribute import AbstractAttribute
+from datatypes.DateTimeAttribute import is_datetime, DateTimeAttribute
+from datatypes.FloatAttribute import FloatAttribute
+from datatypes.IntegerAttribute import IntegerAttribute
+from datatypes.SocialSecurityNumberAttribute import is_ssn, SocialSecurityNumberAttribute
+from datatypes.StringAttribute import StringAttribute
+from datatypes.utils.DataType import DataType
+from lib import utils
+from lib.PrivBayes import greedy_bayes, construct_noisy_conditional_distributions
 
 
 # TODO detect datetime formats.
@@ -262,14 +262,14 @@ class DataDescriber(object):
 
 
 if __name__ == '__main__':
-    from DataSynthesizer.DataGenerator import DataGenerator
+    from DataGenerator import DataGenerator
 
     # input dataset
-    input_data = '../data/adult_ssn.csv'
+    input_data = './data/adult_ssn.csv'
     # location of two output files
     mode = 'correlated_attribute_mode'
-    description_file = '../out/{}/description.txt'.format(mode)
-    synthetic_data = '../out/{}/sythetic_data.csv'.format(mode)
+    description_file = './out/{}/description.txt'.format(mode)
+    synthetic_data = './out/{}/sythetic_data.csv'.format(mode)
 
     # An attribute is categorical if its domain size is less than this threshold.
     # Here modify the threshold to adapt to the domain size of "education" (which is 14 in input dataset).
@@ -292,11 +292,12 @@ if __name__ == '__main__':
     # Number of tuples generated in synthetic dataset.
     num_tuples_to_generate = 32561  # Here 32561 is the same as input dataset, but it can be set to another number.
 
-    # describer = DataDescriber(threshold_of_categorical_variable=threshold_value, null_values=null_values)
-    # describer.describe_dataset_in_correlated_attribute_mode(input_data, epsilon=epsilon, k=degree_of_bayesian_network,
-    #                                                         attribute_to_is_candidate_key=candidate_keys)
-    # describer.save_dataset_description_to_file(description_file)
+    describer = DataDescriber(threshold_of_categorical_variable=threshold_value, null_values=null_values)
+    describer.describe_dataset_in_correlated_attribute_mode(input_data, epsilon=epsilon, k=degree_of_bayesian_network,
+                                                            attribute_to_is_candidate_key=candidate_keys)
+    describer.save_dataset_description_to_file(description_file)
 
     generator = DataGenerator()
     generator.generate_dataset_in_correlated_attribute_mode(num_tuples_to_generate, description_file)
     generator.save_synthetic_data(synthetic_data)
+    print(generator.synthetic_dataset.head())
