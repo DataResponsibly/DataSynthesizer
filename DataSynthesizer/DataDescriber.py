@@ -1,7 +1,8 @@
 import json
+from typing import Dict, List, Union
 
-import numpy as np
-import pandas as pd
+from numpy import array_equal
+from pandas import DataFrame, read_csv
 
 from datatypes.AbstractAttribute import AbstractAttribute
 from datatypes.DateTimeAttribute import is_datetime, DateTimeAttribute
@@ -14,251 +15,290 @@ from lib import utils
 from lib.PrivBayes import greedy_bayes, construct_noisy_conditional_distributions
 
 
-# TODO detect datetime formats.
-class DataDescriber(object):
-    """Analyze input dataset, then save the dataset description in a JSON file.
+class DataDescriber:
+    """Model input dataset, then save a description of the dataset into a JSON file.
 
     Attributes
     ----------
-        histogram_size : int
-            Number of bins in histograms.
-        threshold_of_categorical_variable : int
-            Categorical variables have no more than "this number" of distinct values.
-        null_values: scalar, str, list-like, or dict
-            Additional strings to recognize as NULL. If dict passed, specific per-column NA values.
-            By default the following values are interpreted as NULL: ‘’, ‘NULL’, ‘N/A’, ‘NA’, ‘NaN’, ‘nan’, etc.
-        attribute_to_datatype : dict
-            Mappings of {attribute: datatype}, e.g., {"age": "Integer", "gender": "String"}.
-        attribute_to_is_categorical : dict
-            Mappings of {attribute: boolean}, e.g., {"gender":True, "age":False}.
-        attribute_to_is_candidate_key: dict
-            Mappings of {attribute: boolean}, e.g., {"id":True, "name":False}.
-        dataset_description: dict
-            Nested dictionary (equivalent to JSON) recording the mined dataset information.
-        input_dataset : DataFrame
-            The dataset to be analyzed.
-        input_dataset_as_list : List
-            List of Attributes, essentially the same as input_dataset.
-        bayesian_network : list
-            List of [child, [parent,]] to represent constructed BN.
-        encoded_dataset : DataFrame
-            A discrete dataset taken as input by PrivBayes in correlated attribute mode.
+    histogram_bins : int or str
+        Number of bins in histograms.
+        If it is a string such as 'auto' or 'fd', calculate the optimal bin width by `numpy.histogram_bin_edges`.
+    category_threshold : int
+        Categorical variables have no more than "this number" of distinct values.
+    null_values: str or list
+        Additional strings to recognize as missing values.
+        By default missing values already include {‘’, ‘NULL’, ‘N/A’, ‘NA’, ‘NaN’, ‘nan’}.
+    attr_to_datatype : dict
+        Dictionary of {attribute: datatype}, e.g., {"age": "Integer", "gender": "String"}.
+    attr_to_is_categorical : dict
+        Dictionary of {attribute: boolean}, e.g., {"gender":True, "age":False}.
+    attr_to_is_candidate_key: dict
+        Dictionary of {attribute: boolean}, e.g., {"id":True, "name":False}.
+    data_description: dict
+        Nested dictionary (equivalent to JSON) recording the mined dataset information.
+    df_input : DataFrame
+        The input dataset to be analyzed.
+    attr_to_column : Dict
+        Dictionary of {attribute: AbstractAttribute}
+    bayesian_network : list
+        List of [child, [parent,]] to represent a Bayesian Network.
+    df_encoded : DataFrame
+        Input dataset encoded into integers, taken as input by PrivBayes algorithm in correlated attribute mode.
     """
 
-    def __init__(self, histogram_size=20, threshold_of_categorical_variable=10, null_values=None):
-        self.histogram_size = histogram_size
-        self.threshold_of_categorical_variable = threshold_of_categorical_variable
+    def __init__(self, histogram_bins: Union[int, str] = 20, category_threshold=10, null_values=None):
+        self.histogram_bins: Union[int, str] = histogram_bins
+        self.category_threshold: int = category_threshold
         self.null_values = null_values
-        self.attribute_to_datatype = {}
-        self.attribute_to_is_categorical = {}
-        self.attribute_to_is_candidate_key = {}
-        self.dataset_description = {}
-        self.input_dataset = None
-        self.input_dataset_as_column_dict = {}
-        self.bayesian_network = []
-        self.encoded_dataset = None
 
-    # TODO remove superfluous information in random mode.
-    def describe_dataset_in_random_mode(self, dataset_file, attribute_to_datatype={}, attribute_to_is_categorical={},
-                                        attribute_to_is_candidate_key={}, seed=0):
-        self.describe_dataset_in_independent_attribute_mode(dataset_file, attribute_to_datatype=attribute_to_datatype,
-                                                            attribute_to_is_categorical=attribute_to_is_categorical,
-                                                            attribute_to_is_candidate_key=attribute_to_is_candidate_key,
-                                                            seed=seed)
-        # After running independent attribute mode, 1) make all distributions uniform; 2) set missing rate to zero.
-        for attr in self.dataset_description['attribute_description']:
-            distribution = self.dataset_description['attribute_description'][attr]['distribution_probabilities']
-            uniform_distribution = np.ones_like(distribution)
-            uniform_distribution = utils.normalize_given_distribution(uniform_distribution).tolist()
-            self.dataset_description['attribute_description'][attr]['distribution_probabilities'] = uniform_distribution
-            self.dataset_description['attribute_description'][attr]['missing_rate'] = 0
+        self.attr_to_datatype: Dict[str, DataType] = None
+        self.attr_to_is_categorical: Dict[str, bool] = None
+        self.attr_to_is_candidate_key: Dict[str, bool] = None
 
-    def describe_dataset_in_independent_attribute_mode(self, dataset_file, epsilon=0.1, attribute_to_datatype={},
-                                                       attribute_to_is_categorical={}, attribute_to_is_candidate_key={},
-                                                       seed=0):
+        self.data_description: Dict = {}
+        self.df_input: DataFrame = None
+        self.attr_to_column: Dict[str, AbstractAttribute] = None
+        self.bayesian_network: List = None
+        self.df_encoded: DataFrame = None
+
+    def describe_dataset_in_random_mode(self,
+                                        dataset_file: str,
+                                        attribute_to_datatype: Dict[str, DataType] = None,
+                                        attribute_to_is_categorical: Dict[str, bool] = None,
+                                        attribute_to_is_candidate_key: Dict[str, bool] = None,
+                                        categorical_attribute_domain_file: str = None,
+                                        numerical_attribute_ranges: Dict[str, List] = None,
+                                        seed=0):
+        attribute_to_datatype = attribute_to_datatype or {}
+        attribute_to_is_categorical = attribute_to_is_categorical or {}
+        attribute_to_is_candidate_key = attribute_to_is_candidate_key or {}
+        numerical_attribute_ranges = numerical_attribute_ranges or {}
+
+        if categorical_attribute_domain_file:
+            categorical_attribute_to_domain = utils.read_json_file(categorical_attribute_domain_file)
+        else:
+            categorical_attribute_to_domain = {}
 
         utils.set_random_seed(seed)
-        self.attribute_to_datatype = {attr: DataType(data_type) for attr, data_type in attribute_to_datatype.items()}
-        self.attribute_to_is_categorical = dict(attribute_to_is_categorical)
-        self.attribute_to_is_candidate_key = dict(attribute_to_is_candidate_key)
+        self.attr_to_datatype = {attr: DataType(datatype) for attr, datatype in attribute_to_datatype.items()}
+        self.attr_to_is_categorical = attribute_to_is_categorical
+        self.attr_to_is_candidate_key = attribute_to_is_candidate_key
         self.read_dataset_from_csv(dataset_file)
         self.infer_attribute_data_types()
-        self.get_dataset_meta_info()
-        self.convert_input_dataset_into_a_dict_of_columns()
-        self.infer_domains()
+        self.analyze_dataset_meta()
+        self.represent_input_dataset_by_columns()
+
+        for column in self.attr_to_column.values():
+            attr_name = column.name
+            if attr_name in categorical_attribute_to_domain:
+                column.infer_domain(categorical_domain=categorical_attribute_to_domain[attr_name])
+            elif attr_name in numerical_attribute_ranges:
+                column.infer_domain(numerical_range=numerical_attribute_ranges[attr_name])
+            else:
+                column.infer_domain()
+
+        # record attribute information in json format
+        self.data_description['attribute_description'] = {}
+        for attr, column in self.attr_to_column.items():
+            self.data_description['attribute_description'][attr] = column.to_json()
+
+    def describe_dataset_in_independent_attribute_mode(self,
+                                                       dataset_file,
+                                                       epsilon=0.1,
+                                                       attribute_to_datatype: Dict[str, DataType] = None,
+                                                       attribute_to_is_categorical: Dict[str, bool] = None,
+                                                       attribute_to_is_candidate_key: Dict[str, bool] = None,
+                                                       categorical_attribute_domain_file: str = None,
+                                                       numerical_attribute_ranges: Dict[str, List] = None,
+                                                       seed=0):
+        self.describe_dataset_in_random_mode(dataset_file,
+                                             attribute_to_datatype,
+                                             attribute_to_is_categorical,
+                                             attribute_to_is_candidate_key,
+                                             categorical_attribute_domain_file,
+                                             numerical_attribute_ranges,
+                                             seed=seed)
+
+        for column in self.attr_to_column.values():
+            column.infer_distribution()
+
         self.inject_laplace_noise_into_distribution_per_attribute(epsilon)
         # record attribute information in json format
-        self.dataset_description['attribute_description'] = {}
-        for attr, column in self.input_dataset_as_column_dict.items():
-            assert isinstance(column, AbstractAttribute)
-            self.dataset_description['attribute_description'][attr] = column.to_json()
+        self.data_description['attribute_description'] = {}
+        for attr, column in self.attr_to_column.items():
+            self.data_description['attribute_description'][attr] = column.to_json()
 
-    def describe_dataset_in_correlated_attribute_mode(self, dataset_file, k=0, epsilon=0.1, attribute_to_datatype={},
-                                                      attribute_to_is_categorical={}, attribute_to_is_candidate_key={},
+    def describe_dataset_in_correlated_attribute_mode(self,
+                                                      dataset_file,
+                                                      k=0,
+                                                      epsilon=0.1,
+                                                      attribute_to_datatype: Dict[str, DataType] = None,
+                                                      attribute_to_is_categorical: Dict[str, bool] = None,
+                                                      attribute_to_is_candidate_key: Dict[str, bool] = None,
+                                                      categorical_attribute_domain_file: str = None,
+                                                      numerical_attribute_ranges: Dict[str, List] = None,
                                                       seed=0):
         """Generate dataset description using correlated attribute mode.
 
-        Users only need to call this function. It packages the rest functions.
-
         Parameters
         ----------
-            dataset_file : str
-                File name (with directory) of the sensitive dataset as input in csv format.
-            k : int
-                Maximum number of parents in Bayesian network.
-            epsilon : float
-                A parameter in differential privacy.
-            attribute_to_datatype : dict
-                Mappings of {attribute: datatype}, e.g., {"age": "Integer", "gender": "String"}.
-            attribute_to_is_categorical : dict
-                Mappings of {attribute: boolean}, e.g., {"gender":True, "age":False}.
-            attribute_to_is_candidate_key: dict
-                Mappings of {attribute: boolean}, e.g., {"id":True, "name":False}.
-            seed : int or float
-                Seed the random number generator.
+        dataset_file : str
+            File name (with directory) of the sensitive dataset as input in csv format.
+        k : int
+            Maximum number of parents in Bayesian network.
+        epsilon : float
+            A parameter in differential privacy.
+        attribute_to_datatype : dict
+            Dictionary of {attribute: datatype}, e.g., {"age": "Integer", "gender": "String"}.
+        attribute_to_is_categorical : dict
+            Dictionary of {attribute: boolean}, e.g., {"gender":True, "age":False}.
+        attribute_to_is_candidate_key: dict
+            Dictionary of {attribute: boolean}, e.g., {"id":True, "name":False}.
+        categorical_attribute_domain_file: str
+            File name of a JSON file of some categorical attribute domains.
+        numerical_attribute_ranges: dict
+            Dictionary of {attribute: [min, max]}, e.g., {"age": [25, 65]}
+        seed : int or float
+            Seed the random number generator.
         """
-
-        self.describe_dataset_in_independent_attribute_mode(dataset_file, epsilon, attribute_to_datatype,
-                                                            attribute_to_is_categorical, attribute_to_is_candidate_key,
+        self.describe_dataset_in_independent_attribute_mode(dataset_file,
+                                                            epsilon,
+                                                            attribute_to_datatype,
+                                                            attribute_to_is_categorical,
+                                                            attribute_to_is_candidate_key,
+                                                            categorical_attribute_domain_file,
+                                                            numerical_attribute_ranges,
                                                             seed)
-        self.encoded_dataset = self.encode_dataset_into_binning_indices()
-        if self.encoded_dataset.shape[1] < 2:
-            raise Exception("Constructing Bayesian Network needs more attributes.")
+        self.df_encoded = self.encode_dataset_into_binning_indices()
+        if self.df_encoded.shape[1] < 2:
+            raise Exception("Correlated Attribute Mode requires at least 2 attributes/columns in dataset.")
 
-        self.bayesian_network = greedy_bayes(self.encoded_dataset, k, epsilon)
-        self.dataset_description['bayesian_network'] = self.bayesian_network
-        self.dataset_description['conditional_probabilities'] = construct_noisy_conditional_distributions(
-            self.bayesian_network, self.encoded_dataset, epsilon)
+        self.bayesian_network = greedy_bayes(self.df_encoded, k, epsilon)
+        self.data_description['bayesian_network'] = self.bayesian_network
+        self.data_description['conditional_probabilities'] = construct_noisy_conditional_distributions(
+            self.bayesian_network, self.df_encoded, epsilon)
 
     def read_dataset_from_csv(self, file_name=None):
         try:
-            self.input_dataset = pd.read_csv(file_name, skipinitialspace=True, na_values=self.null_values)
+            self.df_input = read_csv(file_name, skipinitialspace=True, na_values=self.null_values)
         except (UnicodeDecodeError, NameError):
-            self.input_dataset = pd.read_csv(file_name, skipinitialspace=True, na_values=self.null_values,
-                                             encoding='latin1')
+            self.df_input = read_csv(file_name, skipinitialspace=True, na_values=self.null_values,
+                                     encoding='latin1')
 
-        # drop columns with empty active domain, i.e., all values are missing.
-        attributes_before = set(self.input_dataset.columns)
-        self.input_dataset.dropna(axis=1, how='all')
-        attributes_after = set(self.input_dataset.columns)
-        if len(attributes_before) != len(attributes_after):
-            print("Empty columns are removed, including {}.".format(attributes_before - attributes_after))
+        # Remove columns with empty active domain, i.e., all values are missing.
+        attributes_before = set(self.df_input.columns)
+        self.df_input.dropna(axis=1, how='all')
+        attributes_after = set(self.df_input.columns)
+        if len(attributes_before) > len(attributes_after):
+            print(f'Empty columns are removed, including {attributes_before - attributes_after}.')
 
     def infer_attribute_data_types(self):
-        attributes_with_unknown_datatype = set(self.input_dataset.columns) - set(self.attribute_to_datatype)
-        inferred_numerical_attributes = set(utils.infer_numerical_attributes_in_dataframe(self.input_dataset))
+        attributes_with_unknown_datatype = set(self.df_input.columns) - set(self.attr_to_datatype)
+        inferred_numerical_attributes = utils.infer_numerical_attributes_in_dataframe(self.df_input)
+
         for attr in attributes_with_unknown_datatype:
-            column_dropna = self.input_dataset[attr].dropna()
+            column_dropna = self.df_input[attr].dropna()
 
             # current attribute is either Integer or Float.
             if attr in inferred_numerical_attributes:
-                # TODO Testing all values may become very slow for large datasets.
-                if (column_dropna == column_dropna.astype(int)).all():
-                    self.attribute_to_datatype[attr] = DataType.INTEGER
+                # TODO Comparing all values may be too slow for large datasets.
+                if array_equal(column_dropna, column_dropna.astype(int, copy=False)):
+                    self.attr_to_datatype[attr] = DataType.INTEGER
                 else:
-                    self.attribute_to_datatype[attr] = DataType.FLOAT
+                    self.attr_to_datatype[attr] = DataType.FLOAT
 
             # current attribute is either String, DateTime, or SocialSecurityNumber.
             else:
                 # Sample 20 values to test its data_type.
-                datetime_tests = column_dropna.sample(20, replace=True).map(is_datetime)
-                if all(datetime_tests):
-                    self.attribute_to_datatype[attr] = DataType.DATETIME
+                samples = column_dropna.sample(20, replace=True)
+                if all(samples.map(is_datetime)):
+                    self.attr_to_datatype[attr] = DataType.DATETIME
                 else:
-                    ssn_tests = column_dropna.sample(20, replace=True).map(is_ssn)
-                    if all(ssn_tests):
-                        self.attribute_to_datatype[attr] = DataType.SOCIAL_SECURITY_NUMBER
+                    if all(samples.map(is_ssn)):
+                        self.attr_to_datatype[attr] = DataType.SOCIAL_SECURITY_NUMBER
                     else:
-                        self.attribute_to_datatype[attr] = DataType.STRING
+                        self.attr_to_datatype[attr] = DataType.STRING
 
-    def get_dataset_meta_info(self):
-        all_attributes = self.input_dataset.columns.tolist()
+    def analyze_dataset_meta(self):
+        all_attributes = set(self.df_input.columns)
 
         # find all candidate keys.
-        for attr in set.difference(set(all_attributes), set(self.attribute_to_is_candidate_key)):
-            self.attribute_to_is_candidate_key[attr] = self.input_dataset[attr].is_unique
+        for attr in all_attributes - set(self.attr_to_is_candidate_key):
+            self.attr_to_is_candidate_key[attr] = self.df_input[attr].is_unique
 
-        candidate_keys = [attr for attr, is_key in self.attribute_to_is_candidate_key.items() if is_key]
+        candidate_keys = {attr for attr, is_key in self.attr_to_is_candidate_key.items() if is_key}
 
         # find all categorical attributes.
-        for attr in set.difference(set(all_attributes), set(self.attribute_to_is_categorical)):
-            self.attribute_to_is_categorical[attr] = self.is_categorical(attr)
+        for attr in all_attributes - set(self.attr_to_is_categorical):
+            self.attr_to_is_categorical[attr] = self.is_categorical(attr)
 
-        non_categorical_string_attributes = []
-        for attr in all_attributes:
-            if (not self.attribute_to_is_categorical[attr]) and self.attribute_to_datatype[attr] is DataType.STRING:
-                non_categorical_string_attributes.append(attr)
+        non_categorical_string_attributes = set()
+        for attr, is_categorical in self.attr_to_is_categorical.items():
+            if not is_categorical and self.attr_to_datatype[attr] is DataType.STRING:
+                non_categorical_string_attributes.add(attr)
 
-        attributes_in_BN = list(set(all_attributes) - set(candidate_keys) - set(non_categorical_string_attributes))
-        num_attributes_in_BN = len(attributes_in_BN)
-        self.dataset_description['meta'] = {"num_tuples": self.input_dataset.shape[0],
-                                            "num_attributes": self.input_dataset.shape[1],
-                                            "num_attributes_in_BN": num_attributes_in_BN,
-                                            "all_attributes": all_attributes,
-                                            "candidate_keys": candidate_keys,
-                                            "non_categorical_string_attributes": non_categorical_string_attributes,
-                                            "attributes_in_BN": attributes_in_BN}
+        attributes_in_BN = list(all_attributes - candidate_keys - non_categorical_string_attributes)
+        non_categorical_string_attributes = list(non_categorical_string_attributes)
 
-    def is_categorical(self, attr):
+        self.data_description['meta'] = {"num_tuples": self.df_input.shape[0],
+                                         "num_attributes": self.df_input.shape[1],
+                                         "num_attributes_in_BN": len(attributes_in_BN),
+                                         "all_attributes": self.df_input.columns.tolist(),
+                                         "candidate_keys": list(candidate_keys),
+                                         "non_categorical_string_attributes": non_categorical_string_attributes,
+                                         "attributes_in_BN": attributes_in_BN}
+
+    def is_categorical(self, attribute_name):
         """ Detect whether an attribute is categorical.
 
         Parameters
         ----------
-            attr : str
-                Attribute name.
+        attribute_name : str
         """
-        if attr in self.attribute_to_is_categorical:
-            return self.attribute_to_is_categorical[attr]
+        if attribute_name in self.attr_to_is_categorical:
+            return self.attr_to_is_categorical[attribute_name]
         else:
-            if self.input_dataset[attr].dropna().unique().size <= self.threshold_of_categorical_variable:
-                return True
-            else:
-                return False
+            return self.df_input[attribute_name].dropna().unique().size <= self.category_threshold
 
-    def convert_input_dataset_into_a_dict_of_columns(self):
-        self.input_dataset_as_column_dict = {}
-        for attr in self.input_dataset:
-            data_type = self.attribute_to_datatype[attr]
-            is_candidate_key = self.attribute_to_is_candidate_key[attr]
-            is_categorical = self.attribute_to_is_categorical[attr]
-            paras = (attr, is_candidate_key, is_categorical, self.histogram_size)
+    def represent_input_dataset_by_columns(self):
+        self.attr_to_column = {}
+        for attr in self.df_input:
+            data_type = self.attr_to_datatype[attr]
+            is_candidate_key = self.attr_to_is_candidate_key[attr]
+            is_categorical = self.attr_to_is_categorical[attr]
+            paras = (attr, is_candidate_key, is_categorical, self.histogram_bins, self.df_input[attr])
             if data_type is DataType.INTEGER:
-                self.input_dataset_as_column_dict[attr] = IntegerAttribute(*paras)
+                self.attr_to_column[attr] = IntegerAttribute(*paras)
             elif data_type is DataType.FLOAT:
-                self.input_dataset_as_column_dict[attr] = FloatAttribute(*paras)
+                self.attr_to_column[attr] = FloatAttribute(*paras)
             elif data_type is DataType.DATETIME:
-                self.input_dataset_as_column_dict[attr] = DateTimeAttribute(*paras)
+                self.attr_to_column[attr] = DateTimeAttribute(*paras)
             elif data_type is DataType.STRING:
-                self.input_dataset_as_column_dict[attr] = StringAttribute(*paras)
+                self.attr_to_column[attr] = StringAttribute(*paras)
             elif data_type is DataType.SOCIAL_SECURITY_NUMBER:
-                self.input_dataset_as_column_dict[attr] = SocialSecurityNumberAttribute(*paras)
+                self.attr_to_column[attr] = SocialSecurityNumberAttribute(*paras)
             else:
-                raise Exception('The data type of attribute {} is unknown.'.format(attr))
-
-    def infer_domains(self):
-        for column in self.input_dataset_as_column_dict.values():
-            assert isinstance(column, AbstractAttribute)
-            column.infer_domain(self.input_dataset[column.name])
+                raise Exception(f'The DataType of {attr} is unknown.')
 
     def inject_laplace_noise_into_distribution_per_attribute(self, epsilon=0.1):
-        num_attributes_in_BN = self.dataset_description['meta']['num_attributes_in_BN']
-        for column in self.input_dataset_as_column_dict.values():
+        num_attributes_in_BN = self.data_description['meta']['num_attributes_in_BN']
+        for column in self.attr_to_column.values():
             assert isinstance(column, AbstractAttribute)
             column.inject_laplace_noise(epsilon, num_attributes_in_BN)
 
     def encode_dataset_into_binning_indices(self):
         """Before constructing Bayesian network, encode input dataset into binning indices."""
-        encoded_dataset = pd.DataFrame()
-        for attr in self.dataset_description['meta']['attributes_in_BN']:
-            encoded_dataset[attr] = self.input_dataset_as_column_dict[attr].encode_values_into_binning_indices()
+        encoded_dataset = DataFrame()
+        for attr in self.data_description['meta']['attributes_in_BN']:
+            encoded_dataset[attr] = self.attr_to_column[attr].encode_values_into_bin_idx()
         return encoded_dataset
 
     def save_dataset_description_to_file(self, file_name):
         with open(file_name, 'w') as outfile:
-            json.dump(self.dataset_description, outfile, indent=4)
+            json.dump(self.data_description, outfile, indent=4)
 
     def display_dataset_description(self):
-        print(json.dumps(self.dataset_description, indent=4))
+        print(json.dumps(self.data_description, indent=4))
 
 
 if __name__ == '__main__':
@@ -276,15 +316,15 @@ if __name__ == '__main__':
     threshold_value = 20
 
     # Additional strings to recognize as NA/NaN.
-    null_values = '<NULL>'
+    na_values = '<NULL>'
 
     # specify which attributes are candidate keys of input dataset.
-    candidate_keys = {'age': False}
+    candidate_keys = {'age': False, 'ssn': True}
 
     # A parameter in differential privacy.
-    # It roughtly means that removing one tuple will change the probability of any output by  at most exp(epsilon).
-    # Set epsilon=0 to turn off differential privacy.
-    epsilon = 0.1
+    # It roughly means that removing one tuple will change the probability of any output by  at most exp(eps).
+    # Set eps=0 to turn off differential privacy.
+    eps = 0.1
 
     # The maximum number of parents in Bayesian network, i.e., the maximum number of incoming edges.
     degree_of_bayesian_network = 2
@@ -292,8 +332,11 @@ if __name__ == '__main__':
     # Number of tuples generated in synthetic dataset.
     num_tuples_to_generate = 32561  # Here 32561 is the same as input dataset, but it can be set to another number.
 
-    describer = DataDescriber(threshold_of_categorical_variable=threshold_value, null_values=null_values)
-    describer.describe_dataset_in_correlated_attribute_mode(input_data, epsilon=epsilon, k=degree_of_bayesian_network,
+    describer = DataDescriber(histogram_bins='fd',
+                              category_threshold=threshold_value,
+                              null_values=na_values)
+    describer.describe_dataset_in_correlated_attribute_mode(input_data,
+                                                            epsilon=eps,
                                                             attribute_to_is_candidate_key=candidate_keys)
     describer.save_dataset_description_to_file(description_file)
 

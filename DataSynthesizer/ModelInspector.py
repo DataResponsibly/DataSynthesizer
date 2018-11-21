@@ -1,10 +1,12 @@
+from typing import List
+
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from lib.utils import pairwise_attributes_mutual_information
+from lib.utils import pairwise_attributes_mutual_information, normalize_given_distribution
 
 matplotlib.rc('xtick', labelsize=20)
 matplotlib.rc('ytick', labelsize=20)
@@ -13,7 +15,7 @@ sns.set()
 
 
 class ModelInspector(object):
-    def __init__(self, private_df, synthetic_df, attribute_description):
+    def __init__(self, private_df: pd.DataFrame, synthetic_df: pd.DataFrame, attribute_description):
         self.private_df = private_df
         self.synthetic_df = synthetic_df
         self.attribute_description = attribute_description
@@ -22,6 +24,9 @@ class ModelInspector(object):
         for attr in synthetic_df:
             if synthetic_df[attr].unique().size == synthetic_df.shape[0]:
                 self.candidate_keys.add(attr)
+
+        self.private_df.drop(columns=self.candidate_keys, inplace=True)
+        self.synthetic_df.drop(columns=self.candidate_keys, inplace=True)
 
     def compare_histograms(self, attribute):
         datatype = self.attribute_description[attribute]['data_type']
@@ -55,16 +60,16 @@ class ModelInspector(object):
                 dist_synt.sort_index(inplace=True)
                 pos_priv = list(range(len(dist_priv)))
                 pos_synt = list(range(len(dist_synt)))
-                ax1.bar(pos_priv, dist_priv.values)
-                ax2.bar(pos_synt, dist_synt.values)
+                ax1.bar(pos_priv, normalize_given_distribution(dist_priv.values))
+                ax2.bar(pos_synt, normalize_given_distribution(dist_synt.values))
                 ax1.set_xticks(np.arange(min(pos_priv), max(pos_priv) + 1, 1.0))
                 ax2.set_xticks(np.arange(min(pos_synt), max(pos_synt) + 1, 1.0))
                 ax1.set_xticklabels(dist_priv.index.tolist(), fontsize=15)
                 ax2.set_xticklabels(dist_synt.index.tolist(), fontsize=15)
             # the rest are non-categorical numeric attributes.
             else:
-                ax1.hist(self.private_df[attribute].dropna(), bins=15, align='left')
-                ax2.hist(self.synthetic_df[attribute].dropna(), bins=15, align='left')
+                ax1.hist(self.private_df[attribute].dropna(), bins=15, align='left', density=True)
+                ax2.hist(self.synthetic_df[attribute].dropna(), bins=15, align='left', density=True)
 
             ax1_x_min, ax1_x_max = ax1.get_xlim()
             ax2_x_min, ax2_x_max = ax2.get_xlim()
@@ -80,9 +85,16 @@ class ModelInspector(object):
             ax2.set_ylim([y_min, y_max])
             fig.autofmt_xdate()
 
-    def mutual_information_heatmap(self):
-        private_mi = pairwise_attributes_mutual_information(self.private_df)
-        synthetic_mi = pairwise_attributes_mutual_information(self.synthetic_df)
+    def mutual_information_heatmap(self, attributes: List = None):
+        if attributes:
+            private_df = self.private_df[attributes]
+            synthetic_df = self.synthetic_df[attributes]
+        else:
+            private_df = self.private_df
+            synthetic_df = self.synthetic_df
+
+        private_mi = pairwise_attributes_mutual_information(private_df)
+        synthetic_mi = pairwise_attributes_mutual_information(synthetic_df)
 
         fig = plt.figure(figsize=(15, 6), dpi=120)
         fig.suptitle('Pairwise Mutual Information Comparison (Private vs Synthetic)', fontsize=20)

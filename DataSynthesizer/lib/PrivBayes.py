@@ -2,6 +2,7 @@ import random
 import warnings
 from itertools import combinations, product
 from math import log, ceil
+from multiprocessing.pool import Pool
 
 import numpy as np
 import pandas as pd
@@ -9,14 +10,21 @@ from scipy.optimize import fsolve
 
 from lib.utils import mutual_information, normalize_given_distribution
 
+"""
+This module is based on PrivBayes in the following paper:
+
+Zhang J, Cormode G, Procopiuc CM, Srivastava D, Xiao X.
+PrivBayes: Private Data Release via Bayesian Networks.
+"""
+
 
 def sensitivity(num_tuples):
     """Sensitivity function for Bayesian network construction. PrivBayes Lemma 1.
 
     Parameters
     ----------
-        num_tuples : int
-            Number of tuples in sensitive dataset.
+    num_tuples : int
+        Number of tuples in sensitive dataset.
 
     Return
     --------
@@ -35,12 +43,12 @@ def delta(num_attributes, num_tuples, epsilon):
 
     Parameters
     ----------
-        num_attributes : int
-            Number of attributes in dataset.
-        num_tuples : int
-            Number of tuples in dataset.
-        epsilon : float
-            Parameter of differential privacy.
+    num_attributes : int
+        Number of attributes in dataset.
+    num_tuples : int
+        Number of tuples in dataset.
+    epsilon : float
+        Parameter of differential privacy.
     """
     return 2 * (num_attributes - 1) * sensitivity(num_tuples) / epsilon
 
@@ -50,15 +58,15 @@ def usefulness_minus_target(k, num_attributes, num_tuples, target_usefulness=5, 
 
     Parameters
     ----------
-        k : int
-            Max number of degree in Bayesian networks construction
-        num_attributes : int
-            Number of attributes in dataset.
-        num_tuples : int
-            Number of tuples in dataset.
-        target_usefulness : int or float
-        epsilon : float
-            Parameter of differential privacy.
+    k : int
+        Max number of degree in Bayesian networks construction
+    num_attributes : int
+        Number of attributes in dataset.
+    num_tuples : int
+        Number of tuples in dataset.
+    target_usefulness : int or float
+    epsilon : float
+        Parameter of differential privacy.
     """
     if k == num_attributes:
         print('here')
@@ -88,42 +96,60 @@ def calculate_k(num_attributes, num_tuples, target_usefulness=4, epsilon=0.1):
         return ans
 
 
-def greedy_bayes(dataset, k=0, epsilon=0):
+def worker(paras):
+    child, V, num_parents, split, dataset = paras
+    parents_pair_list = []
+    mutual_info_list = []
+
+    if split + num_parents - 1 < len(V):
+        for other_parents in combinations(V[split + 1:], num_parents - 1):
+            parents = list(other_parents)
+            parents.append(V[split])
+            parents_pair_list.append((child, parents))
+            # TODO consider to change the computation of MI by combined integers instead of strings.
+            mi = mutual_information(dataset[child], dataset[parents])
+            mutual_info_list.append(mi)
+
+    return parents_pair_list, mutual_info_list
+
+
+def greedy_bayes(dataset, k=2, epsilon=0):
     """Construct a Bayesian Network (BN) using greedy algorithm.
 
     Parameters
     ----------
-        dataset : DataFrame
-            Input dataset, which only contains categorical attributes.
-        k : int
-            Maximum degree of the constructed BN. If k=0, k is automatically calculated.
-        epsilon : float
-            Parameter of differential privacy.
+    dataset : DataFrame
+        Input dataset, which only contains categorical attributes.
+    k : int
+        Maximum degree of the constructed BN. If k=0, k is automatically calculated.
+    epsilon : float
+        Parameter of differential privacy.
     """
-
+    dataset = dataset.astype(str, copy=False)
     num_tuples, num_attributes = dataset.shape
     if not k:
         k = calculate_k(num_attributes, num_tuples)
 
-    attributes = set(dataset.columns)
+    print('================ Constructing Bayesian Network (BN) ================')
+    root_attribute = random.choice(dataset.columns)
+    V = [root_attribute]
+    rest_attributes = set(dataset.columns)
+    rest_attributes.remove(root_attribute)
+    print(f'Adding ROOT {root_attribute}')
     N = []
-    V = set()
-    V.add(random.choice(dataset.columns))
-
-    print('================== Constructing Bayesian Network ==================')
-    for i in range(1, len(attributes)):
-        print('Looking for next attribute-parents pair.')
-        rest_attributes = attributes - V
+    while rest_attributes:
         parents_pair_list = []
         mutual_info_list = []
-        for child in rest_attributes:
-            print('    Considering attribute {}'.format(child))
-            for parents in combinations(V, min(k, len(V))):
-                parents = list(parents)
-                parents_pair_list.append((child, parents))
-                # TODO consider to change the computation of MI by combined integers instead of strings.
-                mi = mutual_information(dataset[child], dataset[parents])
-                mutual_info_list.append(mi)
+
+        num_parents = min(len(V), k)
+        tasks = [(child, V, num_parents, split, dataset) for child, split in
+                 product(rest_attributes, range(len(V) - num_parents + 1))]
+        with Pool() as pool:
+            res_list = pool.map(worker, tasks)
+
+        for res in res_list:
+            parents_pair_list += res[0]
+            mutual_info_list += res[1]
 
         if epsilon:
             sampling_distribution = exponential_mechanism(dataset, mutual_info_list, epsilon)
@@ -132,7 +158,10 @@ def greedy_bayes(dataset, k=0, epsilon=0):
             idx = mutual_info_list.index(max(mutual_info_list))
 
         N.append(parents_pair_list[idx])
-        V.add(parents_pair_list[idx][0])
+        adding_attribute = parents_pair_list[idx][0]
+        V.append(adding_attribute)
+        rest_attributes.remove(adding_attribute)
+        print(f'Adding attribute {adding_attribute}')
 
     print('========================= BN constructed =========================')
 
@@ -149,7 +178,7 @@ def exponential_mechanism(dataset, mutual_info_list, epsilon=0.1):
     return mi_array
 
 
-def laplacian_noise_parameter(k, num_attributes, num_tuples, epsilon):
+def laplace_noise_parameter(k, num_attributes, num_tuples, epsilon):
     """The noises injected into conditional distributions. PrivBayes Algorithm 1."""
     return 4 * (num_attributes - k) / (num_tuples * epsilon)
 
@@ -168,16 +197,18 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
     if epsilon:
         k = len(attributes) - 1
         num_tuples, num_attributes = encoded_dataset.shape
-        noise_para = laplacian_noise_parameter(k, num_attributes, num_tuples, epsilon)
-        laplacian_noises = np.random.laplace(0, scale=noise_para, size=stats.index.size)
-        stats['count'] += laplacian_noises
+        noise_para = laplace_noise_parameter(k, num_attributes, num_tuples, epsilon)
+        laplace_noises = np.random.laplace(0, scale=noise_para, size=stats.index.size)
+        stats['count'] += laplace_noises
         stats.loc[stats['count'] < 0, 'count'] = 0
 
     return stats
 
 
 def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset, epsilon=0.1):
-    """See more in Algorithm 1 in PrivBayes."""
+    """See more in Algorithm 1 in PrivBayes.
+
+    """
 
     k = len(bayesian_network[-1][1])
     conditional_distributions = {}
@@ -188,8 +219,7 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
     for child, _ in bayesian_network[:k]:
         kplus1_attributes.append(child)
 
-    noisy_dist_of_kplus1_attributes = get_noisy_distribution_of_attributes(kplus1_attributes, encoded_dataset,
-                                                                           epsilon)
+    noisy_dist_of_kplus1_attributes = get_noisy_distribution_of_attributes(kplus1_attributes, encoded_dataset, epsilon)
 
     # generate noisy distribution of root attribute.
     root_stats = noisy_dist_of_kplus1_attributes.loc[:, [root, 'count']].groupby(root).sum()['count']

@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 from dateutil.parser import parse
 from pandas import Series
@@ -7,66 +9,59 @@ from datatypes.utils.DataType import DataType
 from lib.utils import normalize_given_distribution
 
 
-def is_datetime(date_string):
-    """Find whether a value is of type datetime.
+def is_datetime(value: str):
+    """Find whether a value is a datetime. Here weekdays and months are categorical values instead of datetime."""
+    weekdays = {'mon', 'monday', 'tue', 'tuesday', 'wed', 'wednesday', 'thu', 'thursday', 'fri', 'friday',
+                'sat', 'saturday', 'sun', 'sunday'}
+    months = {'jan', 'january', 'feb', 'february', 'mar', 'march', 'apr', 'april', 'may', 'may', 'jun', 'june',
+              'jul', 'july', 'aug', 'august', 'sep', 'sept', 'september', 'oct', 'october', 'nov', 'november',
+              'dec', 'december'}
 
-    Here it regards weekdays and months as categorical strings instead of converting them into timestamps.
-    """
-    weekdays = [("Mon", "Monday"),
-                ("Tue", "Tuesday"),
-                ("Wed", "Wednesday"),
-                ("Thu", "Thursday"),
-                ("Fri", "Friday"),
-                ("Sat", "Saturday"),
-                ("Sun", "Sunday")]
-    months = [("Jan", "January"),
-              ("Feb", "February"),
-              ("Mar", "March"),
-              ("Apr", "April"),
-              ("May", "May"),
-              ("Jun", "June"),
-              ("Jul", "July"),
-              ("Aug", "August"),
-              ("Sep", "Sept", "September"),
-              ("Oct", "October"),
-              ("Nov", "November"),
-              ("Dec", "December")]
-    for entry in weekdays + months:
-        for value in entry:
-            if date_string.lower() == value.lower():
-                return False
+    value_lower = value.lower()
+    if (value_lower in weekdays) or (value_lower in months):
+        return False
     try:
-        parse(date_string)
+        parse(value)
         return True
     except ValueError:
         return False
 
 
+# TODO detect datetime formats
 class DateTimeAttribute(AbstractAttribute):
-    def __init__(self, name, is_candidate_key=False, is_categorical=False, histogram_size=20):
-        super().__init__(name, is_candidate_key, is_categorical, histogram_size)
+    def __init__(self, name: str, is_candidate_key, is_categorical, histogram_size: Union[int, str], data: Series):
+        super().__init__(name, is_candidate_key, is_categorical, histogram_size, data)
         self.is_numerical = True
         self.data_type = DataType.DATETIME
-
-    def infer_domain(self, column):
-        assert isinstance(column, Series)
-        self.data = column
-        self.data_dropna = self.data.dropna()
-        self.missing_rate = (self.data.size - self.data_dropna.size) / self.data.size
         epoch_datetime = parse('1970-01-01')
-        timestamps = self.data_dropna.map(lambda x: int((parse(x) - epoch_datetime).total_seconds()))
-        self.min = float(timestamps.min())
-        self.max = float(timestamps.max())
+        self.timestamps = self.data_dropna.map(lambda x: int((parse(x) - epoch_datetime).total_seconds()))
 
+    def infer_domain(self, categorical_domain=None, numerical_range=None):
+        if numerical_range:
+            self.min, self.max = numerical_range
+            self.distribution_bins = np.array([self.min, self.max])
+        else:
+            self.min = float(self.data_dropna.min())
+            self.max = float(self.data_dropna.max())
+            if self.is_categorical:
+                self.distribution_bins = self.data_dropna.unique()
+            else:
+                self.distribution_bins = np.array([self.min, self.max])
+
+        self.distribution_probabilities = np.full_like(self.distribution_bins, 1 / self.distribution_bins.size)
+
+    def infer_distribution(self):
         if self.is_categorical:
             distribution = self.data_dropna.value_counts()
+            for value in set(self.distribution_bins) - set(distribution.index):
+                distribution[value] = 0
             distribution.sort_index(inplace=True)
-            self.distribution_probabilities = normalize_given_distribution(distribution).tolist()
-            self.distribution_bins = np.array(distribution.index).tolist()
+            self.distribution_probabilities = normalize_given_distribution(distribution)
+            self.distribution_bins = np.array(distribution.index)
         else:
-            distribution = np.histogram(timestamps, bins=self.histogram_size)
-            self.distribution_probabilities = normalize_given_distribution(distribution[0]).tolist()
-            bins = distribution[1][:-1].tolist()
+            distribution = np.histogram(self.timestamps, bins=self.histogram_size, range=(self.min, self.max))
+            self.distribution_probabilities = normalize_given_distribution(distribution[0])
+            bins = distribution[1][:-1]
             bins[0] = bins[0] - 0.001 * (bins[1] - bins[0])
             self.distribution_bins = bins
 

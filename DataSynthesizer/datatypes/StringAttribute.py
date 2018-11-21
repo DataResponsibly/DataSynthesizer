@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 from pandas import Series
 
@@ -7,31 +9,44 @@ from lib import utils
 
 
 class StringAttribute(AbstractAttribute):
-    """Variable min and max are the lengths of the shortest and longest strings."""
+    """Variable min and max are the lengths of the shortest and longest strings.
 
-    def __init__(self, name, is_candidate_key=False, is_categorical=False, histogram_size=20):
-        super().__init__(name, is_candidate_key, is_categorical, histogram_size)
+    """
+
+    def __init__(self, name: str, is_candidate_key, is_categorical, histogram_size: Union[int, str], data: Series):
+        super().__init__(name, is_candidate_key, is_categorical, histogram_size, data)
         self.is_numerical = False
         self.data_type = DataType.STRING
+        self.data_dropna_len = self.data_dropna.astype(str).map(len)
 
-    def infer_domain(self, column):
-        assert isinstance(column, Series)
-        self.data = column
-        self.data_dropna = self.data.dropna()
-        data_dropna_len = self.data_dropna.map(len)
-        self.missing_rate = (self.data.size - self.data_dropna.size) / self.data.size
-        self.min = float(data_dropna_len.min())
-        self.max = float(data_dropna_len.max())
+    def infer_domain(self, categorical_domain=None, numerical_range=None):
+        if categorical_domain:
+            lengths = [len(i) for i in categorical_domain]
+            self.min = min(lengths)
+            self.max = max(lengths)
+            self.distribution_bins = np.array(categorical_domain)
+        else:
+            self.min = int(self.data_dropna_len.min())
+            self.max = int(self.data_dropna_len.max())
+            if self.is_categorical:
+                self.distribution_bins = self.data_dropna.unique()
+            else:
+                self.distribution_bins = np.array([self.min, self.max])
 
+        self.distribution_probabilities = np.full_like(self.distribution_bins, 1 / self.distribution_bins.size)
+
+    def infer_distribution(self):
         if self.is_categorical:
             distribution = self.data_dropna.value_counts()
+            for value in set(self.distribution_bins) - set(distribution.index):
+                distribution[value] = 0
             distribution.sort_index(inplace=True)
-            self.distribution_probabilities = utils.normalize_given_distribution(distribution).tolist()
-            self.distribution_bins = np.array(distribution.index).tolist()
+            self.distribution_probabilities = utils.normalize_given_distribution(distribution)
+            self.distribution_bins = np.array(distribution.index)
         else:
-            distribution = np.histogram(data_dropna_len, bins=self.histogram_size)
-            self.distribution_probabilities = utils.normalize_given_distribution(distribution[0]).tolist()
-            bins = distribution[1][:-1].tolist()
+            distribution = np.histogram(self.data_dropna_len, bins=self.histogram_size)
+            self.distribution_probabilities = utils.normalize_given_distribution(distribution[0])
+            bins = distribution[1][:-1]
             bins[0] = bins[0] - 0.001 * (bins[1] - bins[0])
             self.distribution_bins = bins
 
