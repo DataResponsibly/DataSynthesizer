@@ -147,7 +147,8 @@ class DataDescriber:
         k : int
             Maximum number of parents in Bayesian network.
         epsilon : float
-            A parameter in differential privacy.
+            A parameter in Differential Privacy. Increase epsilon value to reduce the injected noises. Set epsilon=0 to turn
+            off Differential Privacy.
         attribute_to_datatype : dict
             Dictionary of {attribute: datatype}, e.g., {"age": "Integer", "gender": "String"}.
         attribute_to_is_categorical : dict
