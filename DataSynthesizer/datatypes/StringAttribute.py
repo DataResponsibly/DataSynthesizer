@@ -45,10 +45,8 @@ class StringAttribute(AbstractAttribute):
             self.distribution_bins = np.array(distribution.index)
         else:
             distribution = np.histogram(self.data_dropna_len, bins=self.histogram_size)
+            self.distribution_bins = distribution[1][:-1]
             self.distribution_probabilities = utils.normalize_given_distribution(distribution[0])
-            bins = distribution[1][:-1]
-            bins[0] = bins[0] - 0.001 * (bins[1] - bins[0])
-            self.distribution_bins = bins
 
     def generate_values_as_candidate_key(self, n):
         length = np.random.randint(self.min, self.max)

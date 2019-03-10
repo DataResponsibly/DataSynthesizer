@@ -15,11 +15,11 @@ def get_dataset_info(file_name):
     dataset_info = {'candidate_attributes': [],
                     'categorical_attributes': [],
                     'attribute_datatypes': {},
-                    'number_of_tuples': d.dataset_description['meta']['num_tuples'],
-                    'attribute_list': d.dataset_description['meta']['all_attributes']}
+                    'number_of_tuples': d.data_description['meta']['num_tuples'],
+                    'attribute_list': d.data_description['meta']['all_attributes']}
 
-    for attribute in d.dataset_description['attribute_description']:
-        current_attribute_info = d.dataset_description['attribute_description'][attribute]
+    for attribute in d.data_description['attribute_description']:
+        current_attribute_info = d.data_description['attribute_description'][attribute]
         if current_attribute_info['is_candidate_key']:
             dataset_info['candidate_attributes'].append(attribute)
         if current_attribute_info['is_categorical']:
@@ -207,6 +207,7 @@ def get_heatmap_data(dataset_filename):
     for x, xattr in enumerate(attributes):
         for y, yattr in enumerate(attributes):
             out.append([x, y, int(round(1000 * values.loc[xattr, yattr])) / 1000])
+    print(out)
     return out
 
 

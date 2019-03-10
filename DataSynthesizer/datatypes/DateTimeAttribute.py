@@ -1,8 +1,9 @@
+from bisect import bisect_right
 from typing import Union
 
 import numpy as np
 from dateutil.parser import parse
-from pandas import Series
+from pandas import Series, concat
 
 from datatypes.AbstractAttribute import AbstractAttribute
 from datatypes.utils.DataType import DataType
@@ -41,8 +42,8 @@ class DateTimeAttribute(AbstractAttribute):
             self.min, self.max = numerical_range
             self.distribution_bins = np.array([self.min, self.max])
         else:
-            self.min = float(self.data_dropna.min())
-            self.max = float(self.data_dropna.max())
+            self.min = float(self.timestamps.min())
+            self.max = float(self.timestamps.max())
             if self.is_categorical:
                 self.distribution_bins = self.data_dropna.unique()
             else:
@@ -61,9 +62,20 @@ class DateTimeAttribute(AbstractAttribute):
         else:
             distribution = np.histogram(self.timestamps, bins=self.histogram_size, range=(self.min, self.max))
             self.distribution_probabilities = normalize_given_distribution(distribution[0])
-            bins = distribution[1][:-1]
-            bins[0] = bins[0] - 0.001 * (bins[1] - bins[0])
-            self.distribution_bins = bins
+
+    def encode_values_into_bin_idx(self):
+        """Encode values into bin indices for Bayesian Network construction.
+
+        """
+        if self.is_categorical:
+            value_to_bin_idx = {value: idx for idx, value in enumerate(self.distribution_bins)}
+            encoded = self.data.map(lambda x: value_to_bin_idx[x], na_action='ignore')
+        else:
+            encoded = self.timestamps.map(lambda x: bisect_right(self.distribution_bins, x) - 1, na_action='ignore')
+            encoded = concat([encoded, self.data], axis=1).iloc[:, 0]
+
+        encoded.fillna(len(self.distribution_bins), inplace=True)
+        return encoded.astype(int, copy=False)
 
     def generate_values_as_candidate_key(self, n):
         return np.arange(self.min, self.max, (self.min - self.max) / n)
