@@ -1,6 +1,6 @@
 from typing import Union
 
-import numpy as np
+from numpy import arange
 from pandas import Series
 
 from datatypes.AbstractAttribute import AbstractAttribute
@@ -20,7 +20,7 @@ class FloatAttribute(AbstractAttribute):
         super().infer_distribution()
 
     def generate_values_as_candidate_key(self, n):
-        return np.arange(self.min, self.max, (self.max - self.min) / n)
+        return arange(self.min, self.max, (self.max - self.min) / n)
 
     def sample_values_from_binning_indices(self, binning_indices):
         return super().sample_values_from_binning_indices(binning_indices)

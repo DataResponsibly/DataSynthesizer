@@ -172,12 +172,12 @@ class DataDescriber:
                                                             seed)
         self.df_encoded = self.encode_dataset_into_binning_indices()
         if self.df_encoded.shape[1] < 2:
-            raise Exception("Correlated Attribute Mode requires at least 2 attributes/columns in dataset.")
+            raise Exception("Correlated Attribute Mode requires at least 2 attributes(i.e., columns) in dataset.")
 
-        self.bayesian_network = greedy_bayes(self.df_encoded, k, epsilon)
+        self.bayesian_network = greedy_bayes(self.df_encoded, k, epsilon / 2)
         self.data_description['bayesian_network'] = self.bayesian_network
         self.data_description['conditional_probabilities'] = construct_noisy_conditional_distributions(
-            self.bayesian_network, self.df_encoded, epsilon)
+            self.bayesian_network, self.df_encoded, epsilon / 2)
 
     def read_dataset_from_csv(self, file_name=None):
         try:

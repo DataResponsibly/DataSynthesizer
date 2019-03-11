@@ -1,5 +1,5 @@
-import numpy as np
-import pandas as pd
+from numpy import random
+from pandas import DataFrame
 
 from datatypes.utils.AttributeLoader import parse_json
 from lib.utils import set_random_seed, read_json_file, generate_random_string
@@ -16,7 +16,7 @@ class DataGenerator(object):
         set_random_seed(seed)
         description = read_json_file(description_file)
 
-        self.synthetic_dataset = pd.DataFrame()
+        self.synthetic_dataset = DataFrame()
         for attr in description['attribute_description'].keys():
             attr_info = description['attribute_description'][attr]
             datatype = attr_info['data_type']
@@ -25,16 +25,16 @@ class DataGenerator(object):
             if is_candidate_key:
                 self.synthetic_dataset[attr] = parse_json(attr_info).generate_values_as_candidate_key(n)
             elif is_categorical:
-                self.synthetic_dataset[attr] = np.random.choice(attr_info['distribution_bins'], n)
+                self.synthetic_dataset[attr] = random.choice(attr_info['distribution_bins'], n)
             elif datatype == 'String':
-                length = np.random.randint(attr_info['min'], attr_info['max'])
+                length = random.randint(attr_info['min'], attr_info['max'])
                 self.synthetic_dataset[attr] = length
                 self.synthetic_dataset[attr] = self.synthetic_dataset[attr].map(lambda x: generate_random_string(x))
             else:
                 if datatype == 'Integer':
-                    self.synthetic_dataset[attr] = np.random.randint(minimum, maximum + 1, n)
+                    self.synthetic_dataset[attr] = random.randint(minimum, maximum + 1, n)
                 else:
-                    self.synthetic_dataset[attr] = np.random.uniform(minimum, maximum, n)
+                    self.synthetic_dataset[attr] = random.uniform(minimum, maximum, n)
 
     def generate_dataset_in_independent_mode(self, n, description_file, seed=0):
         set_random_seed(seed)
@@ -42,7 +42,7 @@ class DataGenerator(object):
 
         all_attributes = self.description['meta']['all_attributes']
         candidate_keys = set(self.description['meta']['candidate_keys'])
-        self.synthetic_dataset = pd.DataFrame(columns=all_attributes)
+        self.synthetic_dataset = DataFrame(columns=all_attributes)
         for attr in all_attributes:
             attr_info = self.description['attribute_description'][attr]
             column = parse_json(attr_info)
@@ -61,7 +61,7 @@ class DataGenerator(object):
         all_attributes = self.description['meta']['all_attributes']
         candidate_keys = set(self.description['meta']['candidate_keys'])
         self.encoded_dataset = DataGenerator.generate_encoded_dataset(self.n, self.description)
-        self.synthetic_dataset = pd.DataFrame(columns=all_attributes)
+        self.synthetic_dataset = DataFrame(columns=all_attributes)
         for attr in all_attributes:
             attr_info = self.description['attribute_description'][attr]
             column = parse_json(attr_info)
@@ -87,8 +87,8 @@ class DataGenerator(object):
         bn = description['bayesian_network']
         bn_root_attr = bn[0][1][0]
         root_attr_dist = description['conditional_probabilities'][bn_root_attr]
-        encoded_df = pd.DataFrame(columns=DataGenerator.get_sampling_order(bn))
-        encoded_df[bn_root_attr] = np.random.choice(len(root_attr_dist), size=n, p=root_attr_dist)
+        encoded_df = DataFrame(columns=DataGenerator.get_sampling_order(bn))
+        encoded_df[bn_root_attr] = random.choice(len(root_attr_dist), size=n, p=root_attr_dist)
 
         for child, parents in bn:
             child_conditional_distributions = description['conditional_probabilities'][child]
@@ -104,12 +104,12 @@ class DataGenerator(object):
 
                 size = encoded_df[filter_condition].shape[0]
                 if size:
-                    encoded_df.loc[filter_condition, child] = np.random.choice(len(dist), size=size, p=dist)
+                    encoded_df.loc[filter_condition, child] = random.choice(len(dist), size=size, p=dist)
 
             unconditioned_distribution = description['attribute_description'][child]['distribution_probabilities']
-            encoded_df.loc[encoded_df[child].isnull(), child] = np.random.choice(len(unconditioned_distribution),
-                                                                                 size=encoded_df[child].isnull().sum(),
-                                                                                 p=unconditioned_distribution)
+            encoded_df.loc[encoded_df[child].isnull(), child] = random.choice(len(unconditioned_distribution),
+                                                                              size=encoded_df[child].isnull().sum(),
+                                                                              p=unconditioned_distribution)
         encoded_df[encoded_df.columns] = encoded_df[encoded_df.columns].astype(int)
         return encoded_df
 
@@ -121,8 +121,6 @@ if __name__ == '__main__':
     from time import time
 
     dataset_description_file = '../out/AdultIncome/description_test.txt'
-    dataset_description_file = '/home/haoyue/GitLab/data-responsibly-webUI/dataResponsiblyUI/static/intermediatedata/1498175138.8088856_description.txt'
-
     generator = DataGenerator()
 
     t = time()

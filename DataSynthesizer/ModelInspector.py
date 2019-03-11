@@ -2,9 +2,9 @@ from typing import List
 
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import seaborn as sns
+from numpy import arange
+from pandas import DataFrame
 
 from lib.utils import pairwise_attributes_mutual_information, normalize_given_distribution
 
@@ -15,7 +15,7 @@ sns.set()
 
 
 class ModelInspector(object):
-    def __init__(self, private_df: pd.DataFrame, synthetic_df: pd.DataFrame, attribute_description):
+    def __init__(self, private_df: DataFrame, synthetic_df: DataFrame, attribute_description):
         self.private_df = private_df
         self.synthetic_df = synthetic_df
         self.attribute_description = attribute_description
@@ -62,8 +62,8 @@ class ModelInspector(object):
                 pos_synt = list(range(len(dist_synt)))
                 ax1.bar(pos_priv, normalize_given_distribution(dist_priv.values))
                 ax2.bar(pos_synt, normalize_given_distribution(dist_synt.values))
-                ax1.set_xticks(np.arange(min(pos_priv), max(pos_priv) + 1, 1.0))
-                ax2.set_xticks(np.arange(min(pos_synt), max(pos_synt) + 1, 1.0))
+                ax1.set_xticks(arange(min(pos_priv), max(pos_priv) + 1, 1.0))
+                ax2.set_xticks(arange(min(pos_synt), max(pos_synt) + 1, 1.0))
                 ax1.set_xticklabels(dist_priv.index.tolist(), fontsize=15)
                 ax2.set_xticklabels(dist_synt.index.tolist(), fontsize=15)
             # the rest are non-categorical numeric attributes.
@@ -115,5 +115,7 @@ if __name__ == '__main__':
     dataset_description_file = '../output/description/AdultIncomeData_description.txt'
     synthetic_dataset_file = '../output/synthetic_data/AdultIncomeData_synthetic.csv'
 
-    df = pd.read_csv(input_dataset_file)
+    from pandas import read_csv
+
+    df = read_csv(input_dataset_file)
     print(df.head(5))

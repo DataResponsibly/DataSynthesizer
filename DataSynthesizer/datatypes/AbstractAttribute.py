@@ -66,10 +66,12 @@ class AbstractAttribute(object):
             self.distribution_bins = distribution[1][:-1]  # Remove the last bin edge
             self.distribution_probabilities = utils.normalize_given_distribution(distribution[0])
 
-    def inject_laplace_noise(self, epsilon=0.1, num_valid_attributes=10):
+    def inject_laplace_noise(self, epsilon, num_valid_attributes):
         if epsilon > 0:
-            noisy_scale = num_valid_attributes / (epsilon * self.data.size)
-            laplace_noises = np.random.laplace(0, scale=noisy_scale, size=len(self.distribution_probabilities))
+            sensitivity = 2 / self.data.size
+            privacy_budget = epsilon / num_valid_attributes
+            noise_scale = sensitivity / privacy_budget
+            laplace_noises = np.random.laplace(0, scale=noise_scale, size=len(self.distribution_probabilities))
             noisy_distribution = self.distribution_probabilities + laplace_noises
             self.distribution_probabilities = utils.normalize_given_distribution(noisy_distribution)
 

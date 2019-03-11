@@ -5,7 +5,7 @@ from math import log, ceil
 from multiprocessing.pool import Pool
 
 import numpy as np
-import pandas as pd
+from pandas import DataFrame, merge
 from scipy.optimize import fsolve
 
 from lib.utils import mutual_information, normalize_given_distribution
@@ -18,7 +18,7 @@ PrivBayes: Private Data Release via Bayesian Networks.
 """
 
 
-def sensitivity(num_tuples):
+def calculate_sensitivity(num_tuples, child, parents, attr_to_is_binary):
     """Sensitivity function for Bayesian network construction. PrivBayes Lemma 1.
 
     Parameters
@@ -31,12 +31,18 @@ def sensitivity(num_tuples):
     int
         Sensitivity value.
     """
-    a = (2 / num_tuples) * log((num_tuples + 1) / 2)
-    b = (1 - 1 / num_tuples) * log(1 + 2 / (num_tuples - 1))
-    return a + b
+    if attr_to_is_binary[child] or (len(parents) == 1 and attr_to_is_binary[parents[0]]):
+        a = log(num_tuples) / num_tuples
+        b = (num_tuples - 1) / num_tuples
+        b_inv = num_tuples / (num_tuples - 1)
+        return a + b * log(b_inv)
+    else:
+        a = (2 / num_tuples) * log((num_tuples + 1) / 2)
+        b = (1 - 1 / num_tuples) * log(1 + 2 / (num_tuples - 1))
+        return a + b
 
 
-def delta(num_attributes, num_tuples, epsilon):
+def calculate_delta(num_attributes, sensitivity, epsilon):
     """Computing delta, which is a factor when applying differential privacy.
 
     More info is in PrivBayes Section 4.2 "A First-Cut Solution".
@@ -45,12 +51,12 @@ def delta(num_attributes, num_tuples, epsilon):
     ----------
     num_attributes : int
         Number of attributes in dataset.
-    num_tuples : int
-        Number of tuples in dataset.
+    sensitivity : float
+        Sensitivity of removing one tuple.
     epsilon : float
         Parameter of differential privacy.
     """
-    return 2 * (num_attributes - 1) * sensitivity(num_tuples) / epsilon
+    return (num_attributes - 1) * sensitivity / epsilon
 
 
 def usefulness_minus_target(k, num_attributes, num_tuples, target_usefulness=5, epsilon=0.1):
@@ -86,7 +92,7 @@ def calculate_k(num_attributes, num_tuples, target_usefulness=4, epsilon=0.1):
         arguments = (num_attributes, num_tuples, target_usefulness, epsilon)
         warnings.filterwarnings("error")
         try:
-            ans = fsolve(usefulness_minus_target, int(num_attributes / 2), args=arguments)[0]
+            ans = fsolve(usefulness_minus_target, np.array([int(num_attributes / 2)]), args=arguments)[0]
             ans = ceil(ans)
         except RuntimeWarning:
             print("Warning: k is not properly computed!")
@@ -113,7 +119,7 @@ def worker(paras):
     return parents_pair_list, mutual_info_list
 
 
-def greedy_bayes(dataset, k=2, epsilon=0):
+def greedy_bayes(dataset: DataFrame, k: int, epsilon: float):
     """Construct a Bayesian Network (BN) using greedy algorithm.
 
     Parameters
@@ -125,10 +131,12 @@ def greedy_bayes(dataset, k=2, epsilon=0):
     epsilon : float
         Parameter of differential privacy.
     """
-    dataset = dataset.astype(str, copy=False)
+    dataset: DataFrame = dataset.astype(str, copy=False)
     num_tuples, num_attributes = dataset.shape
     if not k:
         k = calculate_k(num_attributes, num_tuples)
+
+    attr_to_is_binary = {attr: dataset[attr].unique().size <= 2 for attr in dataset}
 
     print('================ Constructing Bayesian Network (BN) ================')
     root_attribute = random.choice(dataset.columns)
@@ -152,7 +160,8 @@ def greedy_bayes(dataset, k=2, epsilon=0):
             mutual_info_list += res[1]
 
         if epsilon:
-            sampling_distribution = exponential_mechanism(dataset, mutual_info_list, epsilon)
+            sampling_distribution = exponential_mechanism(epsilon, mutual_info_list, parents_pair_list, attr_to_is_binary,
+                                                          num_tuples, num_attributes)
             idx = np.random.choice(list(range(len(mutual_info_list))), p=sampling_distribution)
         else:
             idx = mutual_info_list.index(max(mutual_info_list))
@@ -168,11 +177,15 @@ def greedy_bayes(dataset, k=2, epsilon=0):
     return N
 
 
-def exponential_mechanism(dataset, mutual_info_list, epsilon=0.1):
+def exponential_mechanism(epsilon, mutual_info_list, parents_pair_list, attr_to_is_binary, num_tuples, num_attributes):
     """Applied in Exponential Mechanism to sample outcomes."""
-    num_tuples, num_attributes = dataset.shape
-    mi_array = np.array(mutual_info_list)
-    mi_array = mi_array / (2 * delta(num_attributes, num_tuples, epsilon))
+    delta_array = []
+    for (child, parents) in parents_pair_list:
+        sensitivity = calculate_sensitivity(num_tuples, child, parents, attr_to_is_binary)
+        delta = calculate_delta(num_attributes, sensitivity, epsilon)
+        delta_array.append(delta)
+
+    mi_array = np.array(mutual_info_list) / (2 * np.array(delta_array))
     mi_array = np.exp(mi_array)
     mi_array = normalize_given_distribution(mi_array)
     return mi_array
@@ -180,7 +193,7 @@ def exponential_mechanism(dataset, mutual_info_list, epsilon=0.1):
 
 def laplace_noise_parameter(k, num_attributes, num_tuples, epsilon):
     """The noises injected into conditional distributions. PrivBayes Algorithm 1."""
-    return 4 * (num_attributes - k) / (num_tuples * epsilon)
+    return 2 * (num_attributes - k) / (num_tuples * epsilon)
 
 
 def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.1):
@@ -189,9 +202,9 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
     stats = data.groupby(attributes).sum()
 
     iterables = [range(int(encoded_dataset[attr].max()) + 1) for attr in attributes]
-    full_space = pd.DataFrame(columns=attributes, data=list(product(*iterables)))
+    full_space = DataFrame(columns=attributes, data=list(product(*iterables)))
     stats.reset_index(inplace=True)
-    stats = pd.merge(full_space, stats, how='left')
+    stats = merge(full_space, stats, how='left')
     stats.fillna(0, inplace=True)
 
     if epsilon:
@@ -233,7 +246,7 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
         else:
             stats = get_noisy_distribution_of_attributes(parents + [child], encoded_dataset, epsilon)
 
-        stats = pd.DataFrame(stats.loc[:, parents + [child, 'count']].groupby(parents + [child]).sum())
+        stats = DataFrame(stats.loc[:, parents + [child, 'count']].groupby(parents + [child]).sum())
 
         if len(parents) == 1:
             for parent_instance in stats.index.levels[0]:
