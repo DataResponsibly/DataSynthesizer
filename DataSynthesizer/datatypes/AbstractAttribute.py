@@ -133,4 +133,4 @@ class AbstractAttribute(object):
         else:
             # sample from the last interval where the right edge is missing in self.distribution_bins
             neg_2, neg_1 = self.distribution_bins[-2:]
-            return uniform(neg_1, 2 * neg_1 - neg_2)
+            return uniform(neg_1, self.max)

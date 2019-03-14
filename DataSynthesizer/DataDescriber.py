@@ -46,7 +46,7 @@ class DataDescriber:
         Input dataset encoded into integers, taken as input by PrivBayes algorithm in correlated attribute mode.
     """
 
-    def __init__(self, histogram_bins: Union[int, str] = 20, category_threshold=10, null_values=None):
+    def __init__(self, histogram_bins: Union[int, str] = 20, category_threshold=20, null_values=None):
         self.histogram_bins: Union[int, str] = histogram_bins
         self.category_threshold: int = category_threshold
         self.null_values = null_values

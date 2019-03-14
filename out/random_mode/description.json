@@ -17,12 +17,12 @@
         ],
         "non_categorical_string_attributes": [],
         "attributes_in_BN": [
-            "age",
-            "education",
+            "marital-status",
             "sex",
             "income",
-            "marital-status",
-            "relationship"
+            "relationship",
+            "education",
+            "age"
         ]
     },
     "attribute_description": {

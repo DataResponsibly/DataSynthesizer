@@ -172,7 +172,7 @@ def greedy_bayes(dataset: DataFrame, k: int, epsilon: float):
         rest_attributes.remove(adding_attribute)
         print(f'Adding attribute {adding_attribute}')
 
-    print('========================= BN constructed =========================')
+    print('========================== BN constructed ==========================')
 
     return N
 
