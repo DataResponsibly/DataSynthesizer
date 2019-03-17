@@ -45,7 +45,10 @@ def normalize_given_distribution(frequencies):
     distribution = distribution.clip(0)  # replace negative values with 0
     summation = distribution.sum()
     if summation > 0:
-        return distribution / distribution.sum()
+        if np.isinf(summation):
+            return normalize_given_distribution(np.isinf(distribution))
+        else:
+            return distribution / summation
     else:
         return np.full_like(distribution, 1 / distribution.size)
 
