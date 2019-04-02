@@ -28,7 +28,7 @@ There is a web-based UI in `webUI/`  directory, which is a self-contained Django
 
 - Clone or download this repo to your local machine.
 - Open a terminal and  `cd [repo directory]/webUI/` 
-- Run `PYTHONPATH=../:../DataSynthesizer python manage.py runserver` . The web-based UI will be hosted at `http://127.0.0.1:8000/synthesizer/` .
+- Run `PYTHONPATH=../DataSynthesizer python manage.py runserver` . The web-based UI will be hosted at `http://127.0.0.1:8000/synthesizer/` .
 
 ### License
 

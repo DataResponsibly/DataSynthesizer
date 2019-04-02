@@ -8,7 +8,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 import synthesizer.lib.DataSynthesizerWrapper as wrapper
-from DataSynthesizer.lib.utils import read_json_file
+from lib.utils import read_json_file
 from .models import DataDescriberUI
 from .models import save_uploaded_file
 from .models import getSizeOfDataset

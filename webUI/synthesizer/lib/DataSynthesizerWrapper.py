@@ -3,9 +3,9 @@ import json
 import numpy as np
 import pandas as pd
 
-from DataSynthesizer.DataDescriber import DataDescriber
-from DataSynthesizer.DataGenerator import DataGenerator
-from DataSynthesizer.lib.utils import pairwise_attributes_mutual_information, read_json_file
+from DataDescriber import DataDescriber
+from DataGenerator import DataGenerator
+from lib.utils import pairwise_attributes_mutual_information, read_json_file
 
 
 def get_dataset_info(file_name):
