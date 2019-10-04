@@ -207,7 +207,7 @@ def get_heatmap_data(dataset_filename):
     for x, xattr in enumerate(attributes):
         for y, yattr in enumerate(attributes):
             out.append([x, y, int(round(1000 * values.loc[xattr, yattr])) / 1000])
-    print(out)
+
     return out
 
 

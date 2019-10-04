@@ -23,7 +23,7 @@ def mutual_information(labels_x: Series, labels_y: DataFrame):
     if labels_y.shape[1] == 1:
         labels_y = labels_y.iloc[:, 0]
     else:
-        labels_y = labels_y.apply(lambda x: ' '.join(x.get_values()), axis=1)
+        labels_y = labels_y.apply(lambda x: ' '.join(x.values), axis=1)
 
     return mutual_info_score(labels_x, labels_y)
 
