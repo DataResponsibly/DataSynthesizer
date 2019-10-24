@@ -22,7 +22,8 @@ class ModelInspector(object):
 
         self.candidate_keys = set()
         for attr in synthetic_df:
-            if synthetic_df[attr].unique().size == synthetic_df.shape[0]:
+            is_candidate = self.attribute_description[attr]['is_candidate_key']
+            if is_candidate:
                 self.candidate_keys.add(attr)
 
         self.private_df.drop(columns=self.candidate_keys, inplace=True)
