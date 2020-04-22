@@ -1,6 +1,6 @@
 import random
 import warnings
-from itertools import combinations, product
+from itertools import combinations, product, islice, chain
 from math import log, ceil
 from multiprocessing.pool import Pool
 
@@ -202,7 +202,25 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
     stats = data.groupby(attributes).sum()
 
     iterables = [range(int(encoded_dataset[attr].max()) + 1) for attr in attributes]
-    full_space = DataFrame(columns=attributes, data=list(product(*iterables)))
+    products = product(*iterables)
+
+    def grouper_it(iterable, n):
+        while True:
+            chunk_it = islice(iterable, n)
+            try:
+                first_el = next(chunk_it)
+            except StopIteration:
+                return
+            yield chain((first_el,), chunk_it)
+
+    full_space = None
+    for item in grouper_it(products, 1000000):
+        if full_space is None:
+            full_space = pd.DataFrame(columns=attributes, data=list(item))
+        else:
+            data_frame_append = pd.DataFrame(columns=attributes, data=list(item))
+            full_space.append(data_frame_append)
+
     stats.reset_index(inplace=True)
     stats = merge(full_space, stats, how='left')
     stats.fillna(0, inplace=True)
