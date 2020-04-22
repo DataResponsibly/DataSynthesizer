@@ -216,9 +216,9 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
     full_space = None
     for item in grouper_it(products, 1000000):
         if full_space is None:
-            full_space = pd.DataFrame(columns=attributes, data=list(item))
+            full_space = DataFrame(columns=attributes, data=list(item))
         else:
-            data_frame_append = pd.DataFrame(columns=attributes, data=list(item))
+            data_frame_append = DataFrame(columns=attributes, data=list(item))
             full_space.append(data_frame_append)
 
     stats.reset_index(inplace=True)
@@ -237,9 +237,7 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
 
 
 def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset, epsilon=0.1):
-    """See more in Algorithm 1 in PrivBayes.
-
-    """
+    """See more in Algorithm 1 in PrivBayes."""
 
     k = len(bayesian_network[-1][1])
     conditional_distributions = {}
