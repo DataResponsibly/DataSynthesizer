@@ -2,7 +2,7 @@
 
 ### Usage
 
-DataSynthesizer can generate a synthetic dataset from a sensitive one for release to public. It is developed in Python 3.6 and requires some third-party modules, including numpy, scipy, pandas, and dateutil.
+DataSynthesizer can generate a synthetic dataset from a sensitive one for release to public. It is developed in Python 3 and requires some third-party modules, such as numpy, pandas, and python-dateutil.
 
 Its usage is presented in the following Jupyter Notebooks,
 
@@ -13,22 +13,47 @@ Its usage is presented in the following Jupyter Notebooks,
 ### Assumptions for Input Dataset
 
 1. The input dataset is a table in first normal form (1NF).
-2. The active domain is the domain for each attribute of the table. When implementing differential privacy,  DataSynthesizer injects noises into the statistics within active domain.
+2. When implementing differential privacy,  DataSynthesizer injects noises into the statistics within **active domain** that are the values presented in the table.
 
-### Web-based UI
+### Install DataSynthesizer
 
-There is a web-based UI in `webUI/`  directory, which is a self-contained Django project. Here is a simple way to run it on your machine.
+Step 1 Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) for Python 3.
 
-##### Step 1 Install Python 3 and necessary packages
+Step 2 Download DataSynthesizer.
 
-- [Miniconda](http://conda.pydata.org/miniconda.html) is recommended as the Python distribution. It also contains a user-friendly package manager "conda".  Note that DataSynthesizer is Python 3 based.
-- After installing it on your machine, run `conda install numpy pandas scikit-learn matplotlib seaborn jupyter django`  in terminal to install the packages.
+```bash
+git clone https://github.com/DataResponsibly/DataSynthesizer
+```
 
-##### Step 2 Run web-based UI
+Step 3 Install DataSynthesizer.
 
-- Clone or download this repo to your local machine.
-- Open a terminal and  `cd [repo directory]/webUI/` 
-- Run `PYTHONPATH=../DataSynthesizer python manage.py runserver` . The web-based UI will be hosted at `http://127.0.0.1:8000/synthesizer/` .
+```bash
+cd DataSynthesizer  # go to the DataSynthesizer repository that is just downloaded
+conda env create -f environment.yml
+```
+
+### Run DataSynthesizer
+
+DataSynthesizer can be executed by both Jupyter Notebooks and a web-based UI.
+
+Step 1 Activate this environment for DataSynthesizer.
+
+```bash
+conda activate DataSynthesizer
+```
+
+Step 2
+
+For Jupyter Notebooks, run `juypyter notebook` in terminal.
+
+For web-based UI
+
+```bash
+cd DataSynthesizer/webUI/
+PYTHONPATH=../DataSynthesizer python manage.py runserver
+```
+
+Then the web-based UI is hosted at http://127.0.0.1:8000/synthesizer/
 
 ### License
 

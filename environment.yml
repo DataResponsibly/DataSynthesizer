@@ -1,0 +1,11 @@
+name: DataSynthesizer
+dependencies:
+  - python
+  - numpy
+  - pandas
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - jupyter
+  - django
+  - python-dateutil
