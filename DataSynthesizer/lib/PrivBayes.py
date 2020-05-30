@@ -259,18 +259,20 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
 
         if idx < k:
             stats = noisy_dist_of_kplus1_attributes.copy().loc[:, parents + [child, 'count']]
+            stats = stats.groupby(parents + [child], as_index=False).sum()
         else:
             stats = get_noisy_distribution_of_attributes(parents + [child], encoded_dataset, epsilon)
+            stats = stats.loc[:, parents + [child, 'count']]
 
-        stats = DataFrame(stats.loc[:, parents + [child, 'count']].groupby(parents + [child]).sum())
+        for parents_instance, stats_sub in stats.groupby(parents):
+            stats_sub = stats_sub.sort_values(by=child)
+            dist = normalize_given_distribution(stats_sub['count']).tolist()
 
-        if len(parents) == 1:
-            for parent_instance in stats.index.levels[0]:
-                dist = normalize_given_distribution(stats.loc[parent_instance]['count']).tolist()
-                conditional_distributions[child][str([parent_instance])] = dist
-        else:
-            for parents_instance in product(*stats.index.levels[:-1]):
-                dist = normalize_given_distribution(stats.loc[parents_instance]['count']).tolist()
-                conditional_distributions[child][str(list(parents_instance))] = dist
+            if len(parents) == 1:
+                parents_key = str([parents_instance])
+            else:
+                parents_key = str(list(parents_instance))
+
+            conditional_distributions[child][parents_key] = dist
 
     return conditional_distributions
