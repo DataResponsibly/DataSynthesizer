@@ -1,0 +1,13 @@
+dist: xenial
+language: python
+python:
+  - "3.6"
+cache: pip
+before_install:
+  - pip install -U pip
+  - pip install -U pytest
+  - pip install -r requirements.txt
+install:
+  - python setup.py install
+script:
+  - pytest DataSynthesizer
