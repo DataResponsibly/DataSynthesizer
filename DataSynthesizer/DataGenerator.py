@@ -1,8 +1,8 @@
 from numpy import random
 from pandas import DataFrame
 
-from datatypes.utils.AttributeLoader import parse_json
-from lib.utils import set_random_seed, read_json_file, generate_random_string
+from DataSynthesizer.datatypes.utils.AttributeLoader import parse_json
+from DataSynthesizer.lib.utils import set_random_seed, read_json_file, generate_random_string
 
 
 class DataGenerator(object):

@@ -1,4 +1,4 @@
-name: DataSynthesizer
+name: DataSynthesizerEnvironment
 dependencies:
   - python
   - numpy

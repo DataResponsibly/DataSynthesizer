@@ -5,9 +5,9 @@ import numpy as np
 from dateutil.parser import parse
 from pandas import Series, concat
 
-from datatypes.AbstractAttribute import AbstractAttribute
-from datatypes.utils.DataType import DataType
-from lib.utils import normalize_given_distribution
+from DataSynthesizer.datatypes.AbstractAttribute import AbstractAttribute
+from DataSynthesizer.datatypes.utils.DataType import DataType
+from DataSynthesizer.lib.utils import normalize_given_distribution
 
 
 def is_datetime(value: str):

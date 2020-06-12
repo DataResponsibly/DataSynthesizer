@@ -8,7 +8,7 @@ import numpy as np
 from pandas import DataFrame, merge
 from scipy.optimize import fsolve
 
-from lib.utils import mutual_information, normalize_given_distribution
+from DataSynthesizer.lib.utils import mutual_information, normalize_given_distribution
 
 """
 This module is based on PrivBayes in the following paper:

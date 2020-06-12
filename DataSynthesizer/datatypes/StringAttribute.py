@@ -3,9 +3,9 @@ from typing import Union
 import numpy as np
 from pandas import Series
 
-from datatypes.AbstractAttribute import AbstractAttribute
-from datatypes.utils.DataType import DataType
-from lib import utils
+from DataSynthesizer.datatypes.AbstractAttribute import AbstractAttribute
+from DataSynthesizer.datatypes.utils.DataType import DataType
+from DataSynthesizer.lib import utils
 
 
 class StringAttribute(AbstractAttribute):

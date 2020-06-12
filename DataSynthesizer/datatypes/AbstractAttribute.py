@@ -7,8 +7,8 @@ import numpy as np
 from numpy.random import choice
 from pandas import Series
 
-from datatypes.utils import DataType
-from lib import utils
+from DataSynthesizer.datatypes.utils import DataType
+from DataSynthesizer.lib import utils
 
 
 class AbstractAttribute(object):

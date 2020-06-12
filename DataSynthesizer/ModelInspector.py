@@ -4,14 +4,44 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from numpy import arange
-from pandas import DataFrame
+from pandas import DataFrame, Series
+from scipy.stats import entropy, ks_2samp
 
-from lib.utils import pairwise_attributes_mutual_information, normalize_given_distribution
+from DataSynthesizer.lib.utils import pairwise_attributes_mutual_information, normalize_given_distribution
 
 matplotlib.rc('xtick', labelsize=20)
 matplotlib.rc('ytick', labelsize=20)
 
 sns.set()
+
+
+def get_distribution_of_categorical_attribute(attribute: Series, indicies=None):
+    distribution = attribute.dropna().value_counts()
+    if indicies is not None:
+        for idx in set(indicies) - set(distribution.index):
+            distribution.loc[idx] = 0
+    distribution.sort_index(inplace=True)
+    return distribution / sum(distribution)
+
+
+def kl_test(df_in: DataFrame, df_out: DataFrame, attr: str):
+    """
+    df_in: the sensitive dataset
+    df_out: the synthetic dataset
+    attr: the attribute that will be calculated for KL-divergence.
+    """
+    distribution_in = get_distribution_of_categorical_attribute(df_in[attr])
+    distribution_out = get_distribution_of_categorical_attribute(df_out[attr], distribution_in.index)
+    return entropy(distribution_out, distribution_in)
+
+
+def ks_test(df_in: DataFrame, df_out: DataFrame, attr: str):
+    """
+    df_in: the sensitive dataset
+    df_out: the synthetic dataset
+    attr: the attribute that will be calculated for Two-sample Kolmogorov–Smirnov test.
+    """
+    return ks_2samp(df_in[attr], df_out[attr])[0]
 
 
 class ModelInspector(object):
