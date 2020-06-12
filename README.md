@@ -1,4 +1,4 @@
-[![PyPi Shield](https://img.shields.io/pypi/v/DataSynthesizer.svg)](https://pypi.python.org/pypi/DataSynthesizer)[![Travis CI Shield](https://travis-ci.com/DataResponsibly/DataSynthesizer.svg?branch=master)](https://travis-ci.com/DataResponsibly/DataSynthesizer)
+[![PyPi Shield](https://img.shields.io/pypi/v/DataSynthesizer.svg)](https://pypi.python.org/pypi/DataSynthesizer) [![Travis CI Shield](https://travis-ci.com/DataResponsibly/DataSynthesizer.svg?branch=master)](https://travis-ci.com/DataResponsibly/DataSynthesizer)
 
 # DataSynthesizer
 
