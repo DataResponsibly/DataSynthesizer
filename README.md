@@ -23,6 +23,11 @@ pip install DataSynthesizer
 
 #### Use Jupyter Notebooks
 
+```bash
+# install jupyter first
+pip install jupyter
+```
+
 There are some demos in `./notebooks/`
 
 - [DataSynthesizer__random_mode.ipynb](notebooks/DataSynthesizer__random_mode.ipynb)
@@ -34,7 +39,13 @@ There are some demos in `./notebooks/`
 DataSynthesizer can be executed by a web-based UI.
 
 ```bash
+# install django
+pip install django
+
+# go to the directory for webUI
 cd DataSynthesizer/webUI/
+
+# run the server
 python manage.py runserver
 ```
 
