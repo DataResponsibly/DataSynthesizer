@@ -19,7 +19,7 @@ def test_datasynthesizer():
     categorical_attributes = {'education': True}
     epsilon = 1
     degree_of_bayesian_network = 2
-    num_tuples_to_generate = 1000
+    num_tuples_to_generate = 10000
 
     describer = DataDescriber(category_threshold=threshold_value)
     describer.describe_dataset_in_correlated_attribute_mode(dataset_file=input_data,
