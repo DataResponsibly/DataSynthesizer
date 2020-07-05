@@ -49,7 +49,7 @@ class StringAttribute(AbstractAttribute):
             self.distribution_probabilities = utils.normalize_given_distribution(distribution[0])
 
     def generate_values_as_candidate_key(self, n):
-        length = np.random.randint(self.min, self.max)
+        length = np.random.randint(self.min, self.max + 1)
         vectorized = np.vectorize(lambda x: '{}{}'.format(utils.generate_random_string(length), x))
         return vectorized(np.arange(n))
 

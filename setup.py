@@ -16,12 +16,12 @@ with open(HERE / 'HISTORY.md') as history_file:
     history = history_file.read()
 
 requirements = [
-    "numpy",
-    "pandas",
-    "scikit-learn",
-    "matplotlib",
-    "seaborn",
-    "python-dateutil"
+    "numpy>=1.18.5",
+    "pandas>=1.0.5",
+    "scikit-learn>=0.23.1",
+    "matplotlib>=3.2.2",
+    "seaborn>=0.10.1",
+    "python-dateutil>=2.8.1"
 ]
 
 setup_requirements = ['pytest-runner', ]

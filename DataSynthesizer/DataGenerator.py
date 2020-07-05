@@ -27,7 +27,7 @@ class DataGenerator(object):
             elif is_categorical:
                 self.synthetic_dataset[attr] = random.choice(attr_info['distribution_bins'], n)
             elif datatype == 'String':
-                length = random.randint(attr_info['min'], attr_info['max'])
+                length = random.randint(attr_info['min'], attr_info['max'] + 1)
                 self.synthetic_dataset[attr] = length
                 self.synthetic_dataset[attr] = self.synthetic_dataset[attr].map(lambda x: generate_random_string(x))
             else:
