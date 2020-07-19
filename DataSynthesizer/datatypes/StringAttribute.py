@@ -17,7 +17,8 @@ class StringAttribute(AbstractAttribute):
         super().__init__(name, is_candidate_key, is_categorical, histogram_size, data)
         self.is_numerical = False
         self.data_type = DataType.STRING
-        self.data_dropna_len = self.data_dropna.astype(str).map(len)
+        self.data_dropna = self.data_dropna.astype(str)
+        self.data_dropna_len = self.data_dropna.map(len)
 
     def infer_domain(self, categorical_domain=None, numerical_range=None):
         if categorical_domain:
