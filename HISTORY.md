@@ -15,3 +15,9 @@
 ### Bugs Fixed
 
 * infer_distribution() for string attributes fails to sort index of varying types. - [Issue #24](https://github.com/DataResponsibly/DataSynthesizer/issues/24) by @raids
+
+## 0.1.3 - 2020-09-13
+
+### Bugs Fixed
+
+* The dataframes are not appended into the full space in get_noisy_distribution_of_attributes(). - [Issue #26](https://github.com/DataResponsibly/DataSynthesizer/issues/26) by @zjroth

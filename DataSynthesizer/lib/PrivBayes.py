@@ -219,7 +219,7 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
             full_space = DataFrame(columns=attributes, data=list(item))
         else:
             data_frame_append = DataFrame(columns=attributes, data=list(item))
-            full_space.append(data_frame_append)
+            full_space = full_space.append(data_frame_append, ignore_index=True)
 
     stats.reset_index(inplace=True)
     stats = merge(full_space, stats, how='left')
