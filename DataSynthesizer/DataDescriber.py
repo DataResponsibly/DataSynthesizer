@@ -225,7 +225,10 @@ class DataDescriber:
 
         # find all candidate keys.
         for attr in all_attributes - set(self.attr_to_is_candidate_key):
-            self.attr_to_is_candidate_key[attr] = self.df_input[attr].is_unique
+            if self.attr_to_datatype[attr] in {DataType.FLOAT, DataType.DATETIME}:
+                self.attr_to_is_candidate_key[attr] = False
+            else:
+                self.attr_to_is_candidate_key[attr] = self.df_input[attr].is_unique
 
         candidate_keys = {attr for attr, is_key in self.attr_to_is_candidate_key.items() if is_key}
 
