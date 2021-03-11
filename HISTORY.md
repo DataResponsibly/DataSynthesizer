@@ -33,3 +33,9 @@
 ### What's New
 
 * Downgrade required Python from >=3.8 to >=3.7.
+
+## 0.1.6 - 2021-03-11
+
+### What's New
+
+* Update example notebooks.
