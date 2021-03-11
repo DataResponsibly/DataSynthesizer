@@ -31,14 +31,14 @@ test_requirements = ['pytest>=5', ]
 setup(
     author="Data, Responsibly",
     author_email='dataresponsibly@gmail.com',
-    python_requires='>=3.8',
+    python_requires='>=3.7',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8'
+        'Programming Language :: Python :: 3.7'
     ],
     description="Generate synthetic data that simulate a given dataset.",
     install_requires=requirements,

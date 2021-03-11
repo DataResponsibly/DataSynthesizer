@@ -21,3 +21,15 @@
 ### Bugs Fixed
 
 * The dataframes are not appended into the full space in get_noisy_distribution_of_attributes(). - [Issue #26](https://github.com/DataResponsibly/DataSynthesizer/issues/26) by @zjroth
+
+## 0.1.4 - 2021-01-14
+
+### Bugs Fixed
+
+* Fix a bug in candidate key identification.
+
+## 0.1.5 - 2021-03-11
+
+### What's New
+
+* Downgrade required Python from >=3.8 to >=3.7.
