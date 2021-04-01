@@ -192,8 +192,11 @@ def exponential_mechanism(epsilon, mutual_info_list, parents_pair_list, attr_to_
 
 
 def laplace_noise_parameter(k, num_attributes, num_tuples, epsilon):
-    """The noises injected into conditional distributions. PrivBayes Algorithm 1."""
-    return 2 * (num_attributes - k) / (num_tuples * epsilon)
+    """The noises injected into conditional distributions.
+
+    Note that these noises are over counts, instead of the probability distributions in PrivBayes Algorithm 1.
+    """
+    return (num_attributes - k) / epsilon
 
 
 def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.1):
@@ -257,9 +260,11 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
     for idx, (child, parents) in enumerate(bayesian_network):
         conditional_distributions[child] = {}
 
-        if idx < k:
+        if idx <= k - 2:
             stats = noisy_dist_of_kplus1_attributes.copy().loc[:, parents + [child, 'count']]
             stats = stats.groupby(parents + [child], as_index=False).sum()
+        elif idx == k - 1:
+            stats = noisy_dist_of_kplus1_attributes.loc[:, parents + [child, 'count']]
         else:
             stats = get_noisy_distribution_of_attributes(parents + [child], encoded_dataset, epsilon)
             stats = stats.loc[:, parents + [child, 'count']]

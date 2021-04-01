@@ -39,3 +39,9 @@
 ### What's New
 
 * Update example notebooks.
+
+## 0.1.7 - 2021-03-31
+
+### Bugs Fixed
+
+* Fixed an error in Laplace noise parameter. - [Issue #34](https://github.com/DataResponsibly/DataSynthesizer/issues/34) by @ganevgv
