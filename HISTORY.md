@@ -45,3 +45,9 @@
 ### Bugs Fixed
 
 * Fixed an error in Laplace noise parameter. - [Issue #34](https://github.com/DataResponsibly/DataSynthesizer/issues/34) by @ganevgv
+
+## 0.1.8 - 2021-04-09
+
+### Bugs Fixed
+
+* The randomness seeding is effective across the entire project now.

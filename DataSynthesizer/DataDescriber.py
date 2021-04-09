@@ -241,7 +241,8 @@ class DataDescriber:
             if not is_categorical and self.attr_to_datatype[attr] is DataType.STRING:
                 non_categorical_string_attributes.add(attr)
 
-        attributes_in_BN = list(all_attributes - candidate_keys - non_categorical_string_attributes)
+        attributes_in_BN = [attr for attr in self.df_input if
+                            attr not in candidate_keys and attr not in non_categorical_string_attributes]
         non_categorical_string_attributes = list(non_categorical_string_attributes)
 
         self.data_description['meta'] = {"num_tuples": self.df_input.shape[0],
