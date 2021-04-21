@@ -86,7 +86,7 @@ def generate_data(username):
             histogram_size = int(configuration['histogram_size'])
 
         if configuration['epsilon'] == '':
-            epsilon = 0.1
+            epsilon = 10
         else:
             epsilon = float(configuration['epsilon'])
 
