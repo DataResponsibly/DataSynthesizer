@@ -24,7 +24,7 @@ def is_datetime(value: str):
     try:
         parse(value)
         return True
-    except ValueError:
+    except:
         return False
 
 

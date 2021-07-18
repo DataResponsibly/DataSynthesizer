@@ -113,3 +113,4 @@ tests/data/output_uniform.csv
 webUI/db.sqlite3
 webUI/media/*.csv
 webUI/media/*.json
+webUI/media/*.py

@@ -51,3 +51,9 @@
 ### Bugs Fixed
 
 * The randomness seeding is effective across the entire project now.
+
+## 0.1.9 - 2021-07-18
+
+### Bugs Fixed
+
+* Optimized the datetime datatype detection.
