@@ -21,9 +21,9 @@ pip install DataSynthesizer
 1. The input dataset is a table in first normal form ([1NF](https://en.wikipedia.org/wiki/First_normal_form)).
 2. When implementing differential privacy, DataSynthesizer injects noises into the statistics within **active domain** that are the values presented in the table.
 
-##### Use [Jupyter Notebook](https://jupyter.org/install)
+##### Use Jupyter Notebook
 
-After installing DataSynthesizer and Jupyter Notebook, open and try the demos in `./notebooks/`
+After installing DataSynthesizer and [Jupyter Notebook](https://jupyter.org/install), open and try the demos in `./notebooks/`
 
 - [DataSynthesizer__random_mode.ipynb](notebooks/DataSynthesizer__random_mode.ipynb)
 - [DataSynthesizer__independent_attribute_mode.ipynb](notebooks/DataSynthesizer__independent_attribute_mode.ipynb)
@@ -31,23 +31,5 @@ After installing DataSynthesizer and Jupyter Notebook, open and try the demos in
 
 ##### Use Web UI
 
-DataSynthesizer can be executed with a Web-based UI .
+The [dataResponsiblyUI](https://github.com/DataResponsibly/dataResponsiblyUI) is a Django project that includes DataSynthesizer. Please follow the steps in [Run the Web UIs locally](https://github.com/DataResponsibly/dataResponsiblyUI#run-the-web-uis-locally) and run DataSynthesizer by visiting http://127.0.0.1:8000/synthesizer in a browser.
 
-```bash
-# install Django
-pip install django
-
-# (optional) if DataSynthesizer is not installed
-pip install DataSynthesizer
-
-# go to the directory for webUI
-cd DataSynthesizer/webUI/
-
-# (optional) Django's way of propagating changes
-python manage.py migrate
-
-# run the server
-python manage.py runserver
-```
-
-Then open a browser and visit http://127.0.0.1:8000/synthesizer/
