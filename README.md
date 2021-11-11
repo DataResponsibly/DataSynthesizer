@@ -16,34 +16,35 @@ pip install DataSynthesizer
 
 ### Usage
 
-#### Assumptions for the Input Dataset
+##### Assumptions for the Input Dataset
 
-1. The input dataset is a table in first normal form (1NF).
+1. The input dataset is a table in first normal form ([1NF](https://en.wikipedia.org/wiki/First_normal_form)).
 2. When implementing differential privacy, DataSynthesizer injects noises into the statistics within **active domain** that are the values presented in the table.
 
-#### Use Jupyter Notebooks
+##### Use [Jupyter Notebook](https://jupyter.org/install)
 
-```bash
-# install jupyter first
-pip install jupyter
-```
-
-There are some demos in `./notebooks/`
+After installing DataSynthesizer and Jupyter Notebook, open and try the demos in `./notebooks/`
 
 - [DataSynthesizer__random_mode.ipynb](notebooks/DataSynthesizer__random_mode.ipynb)
 - [DataSynthesizer__independent_attribute_mode.ipynb](notebooks/DataSynthesizer__independent_attribute_mode.ipynb)
-- [DataSyntheiszer__correlated_attribute_mode.ipynb](notebooks/DataSyntheiszer__correlated_attribute_mode.ipynb)
+- [DataSynthesizer__correlated_attribute_mode.ipynb](notebooks/DataSynthesizer__correlated_attribute_mode.ipynb)
 
-#### Use webUI
+##### Use Web UI
 
-DataSynthesizer can be executed by a web-based UI.
+DataSynthesizer can be executed with a Web-based UI .
 
 ```bash
-# install django
+# install Django
 pip install django
+
+# (optional) if DataSynthesizer is not installed
+pip install DataSynthesizer
 
 # go to the directory for webUI
 cd DataSynthesizer/webUI/
+
+# (optional) Django's way of propagating changes
+python manage.py migrate
 
 # run the server
 python manage.py runserver
