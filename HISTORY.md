@@ -63,3 +63,9 @@
 ### Bugs Fixed
 
 * Seed the randomness in `greedy_bayes()`.
+
+## 0.1.11 - 2022-03-31
+
+### Bugs Fixed
+
+* Fixed a bug in DateTime generation. - [Issue #37](https://github.com/DataResponsibly/DataSynthesizer/issues/37) by @artemgur

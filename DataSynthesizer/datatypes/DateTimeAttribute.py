@@ -82,5 +82,6 @@ class DateTimeAttribute(AbstractAttribute):
 
     def sample_values_from_binning_indices(self, binning_indices):
         column = super().sample_values_from_binning_indices(binning_indices)
-        column[~column.isnull()] = column[~column.isnull()].astype(int)
+        if not self.is_categorical:
+            column[~column.isnull()] = column[~column.isnull()].astype(int)
         return column
