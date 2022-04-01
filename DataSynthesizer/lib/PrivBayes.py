@@ -8,7 +8,7 @@ import numpy as np
 from pandas import DataFrame, merge
 from scipy.optimize import fsolve
 
-from DataSynthesizer.lib.utils import mutual_information, normalize_given_distribution
+from DataSynthesizer.lib.utils import mutual_information, normalize_given_distribution, set_random_seed
 
 """
 This module is based on PrivBayes in the following paper:
@@ -119,7 +119,7 @@ def worker(paras):
     return parents_pair_list, mutual_info_list
 
 
-def greedy_bayes(dataset: DataFrame, k: int, epsilon: float):
+def greedy_bayes(dataset: DataFrame, k: int, epsilon: float, seed=0):
     """Construct a Bayesian Network (BN) using greedy algorithm.
 
     Parameters
@@ -130,7 +130,10 @@ def greedy_bayes(dataset: DataFrame, k: int, epsilon: float):
         Maximum degree of the constructed BN. If k=0, k is automatically calculated.
     epsilon : float
         Parameter of differential privacy.
+    seed : int or float
+        Seed for the randomness in BN generation.
     """
+    set_random_seed(seed)
     dataset: DataFrame = dataset.astype(str, copy=False)
     num_tuples, num_attributes = dataset.shape
     if not k:

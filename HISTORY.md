@@ -57,3 +57,9 @@
 ### Bugs Fixed
 
 * Optimized the datetime datatype detection.
+
+## 0.1.10 - 2021-11-15
+
+### Bugs Fixed
+
+* Seed the randomness in `greedy_bayes()`.
