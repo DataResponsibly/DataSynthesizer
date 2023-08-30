@@ -81,3 +81,6 @@ def display_bayesian_network(bn):
 
 def generate_random_string(length):
     return ''.join(np.random.choice(list(ascii_lowercase), size=length))
+
+def display():
+    print('Hello')
