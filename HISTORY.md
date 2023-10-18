@@ -76,3 +76,9 @@
 
 * Support Python 3.11+ and pandas 2.0+. - [Issue #40](https://github.com/DataResponsibly/DataSynthesizer/issues/41) by @artemgur
 * Added empty file creation before saving files. - [Issue #41](https://github.com/DataResponsibly/DataSynthesizer/issues/41) by @PepijndeReus
+
+## 0.1.13 - 2023-10-18
+
+### Bugs Fixed
+
+* Support pandas 2.0+.

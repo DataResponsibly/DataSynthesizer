@@ -79,10 +79,10 @@ class ModelInspector(object):
             if is_categorical:
                 dist_priv = self.private_df[attribute].value_counts()
                 dist_synt = self.synthetic_df[attribute].value_counts()
-                for idx, number in dist_priv.iteritems():
+                for idx, number in dist_priv.items():
                     if idx not in dist_synt.index:
                         dist_synt.loc[idx] = 0
-                for idx, number in dist_synt.iteritems():
+                for idx, number in dist_synt.items():
                     if idx not in dist_priv.index:
                         dist_priv.loc[idx] = 0
                 dist_priv.index = [str(i) for i in dist_priv.index]
