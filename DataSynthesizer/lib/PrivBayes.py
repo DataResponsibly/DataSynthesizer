@@ -5,6 +5,7 @@ from math import log, ceil
 from multiprocessing.pool import Pool
 
 import numpy as np
+import pandas as pd
 from pandas import DataFrame, merge
 from scipy.optimize import fsolve
 
@@ -225,7 +226,7 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
             full_space = DataFrame(columns=attributes, data=list(item))
         else:
             data_frame_append = DataFrame(columns=attributes, data=list(item))
-            full_space = full_space.append(data_frame_append, ignore_index=True)
+            full_space = pd.concat([full_space, data_frame_append], ignore_index=True)
 
     stats.reset_index(inplace=True)
     stats = merge(full_space, stats, how='left')
@@ -272,15 +273,12 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
             stats = get_noisy_distribution_of_attributes(parents + [child], encoded_dataset, epsilon)
             stats = stats.loc[:, parents + [child, 'count']]
 
-        for parents_instance, stats_sub in stats.groupby(parents):
+        parents_grouper = parents[0] if len(parents) == 1 else parents
+        for parents_instance, stats_sub in stats.groupby(parents_grouper):
             stats_sub = stats_sub.sort_values(by=child)
             dist = normalize_given_distribution(stats_sub['count']).tolist()
 
-            if len(parents) == 1:
-                parents_key = str([parents_instance])
-            else:
-                parents_key = str(list(parents_instance))
-
+            parents_key = str([parents_instance]) if len(parents) == 1 else str(list(parents_instance))
             conditional_distributions[child][parents_key] = dist
 
     return conditional_distributions

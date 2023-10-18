@@ -1,4 +1,6 @@
 import json
+
+from pathlib import Path
 from typing import Dict, List, Union
 
 from numpy import array_equal
@@ -299,6 +301,7 @@ class DataDescriber:
         return encoded_dataset
 
     def save_dataset_description_to_file(self, file_name):
+        Path(file_name).touch()
         with open(file_name, 'w') as outfile:
             json.dump(self.data_description, outfile, indent=4)
 

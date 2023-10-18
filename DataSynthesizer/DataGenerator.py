@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from numpy import random
 from pandas import DataFrame
 
@@ -114,6 +116,7 @@ class DataGenerator(object):
         return encoded_df
 
     def save_synthetic_data(self, to_file):
+        Path(to_file).touch()
         self.synthetic_dataset.to_csv(to_file, index=False)
 
 

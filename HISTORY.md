@@ -69,3 +69,10 @@
 ### Bugs Fixed
 
 * Fixed a bug in DateTime generation. - [Issue #37](https://github.com/DataResponsibly/DataSynthesizer/issues/37) by @artemgur
+
+## 0.1.12 - 2023-10-17
+
+### Bugs Fixed
+
+* Support Python 3.11+ and pandas 2.0+. - [Issue #40](https://github.com/DataResponsibly/DataSynthesizer/issues/41) by @artemgur
+* Added empty file creation before saving files. - [Issue #41](https://github.com/DataResponsibly/DataSynthesizer/issues/41) by @PepijndeReus
