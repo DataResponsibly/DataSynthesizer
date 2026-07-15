@@ -67,8 +67,9 @@ def generate_data(username):
     # else:
     #     categorical_threshold = int(configuration['categorical_threshold'])
 
+    # blank seed field -> None, so a fresh seed is used every run
     if configuration['seed'] == '':
-        seed = 0
+        seed = None
     else:
         seed = int(configuration['seed'])
 

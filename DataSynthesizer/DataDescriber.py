@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Union
 
+import numpy as np
 from numpy import array_equal
 from pandas import DataFrame, read_csv
 
@@ -62,6 +63,7 @@ class DataDescriber:
         self.attr_to_column: Dict[str, AbstractAttribute] = None
         self.bayesian_network: List = None
         self.df_encoded: DataFrame = None
+        self._rng: np.random.Generator = None
 
     def describe_dataset_in_random_mode(self,
                                         dataset_file: str,
@@ -70,7 +72,7 @@ class DataDescriber:
                                         attribute_to_is_candidate_key: Dict[str, bool] = None,
                                         categorical_attribute_domain_file: str = None,
                                         numerical_attribute_ranges: Dict[str, List] = None,
-                                        seed=0):
+                                        seed=None):
         attribute_to_datatype = attribute_to_datatype or {}
         attribute_to_is_categorical = attribute_to_is_categorical or {}
         attribute_to_is_candidate_key = attribute_to_is_candidate_key or {}
@@ -82,6 +84,8 @@ class DataDescriber:
             categorical_attribute_to_domain = {}
 
         utils.set_random_seed(seed)
+        # dedicated generator for the dp noise, separate from the global np.random state
+        self._rng = np.random.default_rng(seed)
         self.attr_to_datatype = {attr: DataType(datatype) for attr, datatype in attribute_to_datatype.items()}
         self.attr_to_is_categorical = attribute_to_is_categorical
         self.attr_to_is_candidate_key = attribute_to_is_candidate_key
@@ -112,7 +116,7 @@ class DataDescriber:
                                                        attribute_to_is_candidate_key: Dict[str, bool] = None,
                                                        categorical_attribute_domain_file: str = None,
                                                        numerical_attribute_ranges: Dict[str, List] = None,
-                                                       seed=0):
+                                                       seed=None):
         self.describe_dataset_in_random_mode(dataset_file,
                                              attribute_to_datatype,
                                              attribute_to_is_categorical,
@@ -139,7 +143,7 @@ class DataDescriber:
                                                       attribute_to_is_candidate_key: Dict[str, bool] = None,
                                                       categorical_attribute_domain_file: str = None,
                                                       numerical_attribute_ranges: Dict[str, List] = None,
-                                                      seed=0):
+                                                      seed=None):
         """Generate dataset description using correlated attribute mode.
 
         Parameters
@@ -161,8 +165,10 @@ class DataDescriber:
             File name of a JSON file of some categorical attribute domains.
         numerical_attribute_ranges: dict
             Dictionary of {attribute: [min, max]}, e.g., {"age": [25, 65]}
-        seed : int or float
-            Seed the random number generator.
+        seed : int
+            Seed the random number generator. Defaults to None (fresh every run).
+            Setting a fixed seed makes the injected noise reproducible, which disables the
+            differential privacy guarantee.
         """
         self.describe_dataset_in_independent_attribute_mode(dataset_file,
                                                             epsilon,
@@ -176,10 +182,10 @@ class DataDescriber:
         if self.df_encoded.shape[1] < 2:
             raise Exception("Correlated Attribute Mode requires at least 2 attributes(i.e., columns) in dataset.")
 
-        self.bayesian_network = greedy_bayes(self.df_encoded, k, epsilon / 2, seed=seed)
+        self.bayesian_network = greedy_bayes(self.df_encoded, k, epsilon / 2, rng=self._rng)
         self.data_description['bayesian_network'] = self.bayesian_network
         self.data_description['conditional_probabilities'] = construct_noisy_conditional_distributions(
-            self.bayesian_network, self.df_encoded, epsilon / 2)
+            self.bayesian_network, self.df_encoded, epsilon / 2, rng=self._rng)
 
     def read_dataset_from_csv(self, file_name=None):
         try:
@@ -291,7 +297,7 @@ class DataDescriber:
         num_attributes_in_BN = self.data_description['meta']['num_attributes_in_BN']
         for column in self.attr_to_column.values():
             assert isinstance(column, AbstractAttribute)
-            column.inject_laplace_noise(epsilon, num_attributes_in_BN)
+            column.inject_laplace_noise(epsilon, num_attributes_in_BN, rng=self._rng)
 
     def encode_dataset_into_binning_indices(self):
         """Before constructing Bayesian network, encode input dataset into binning indices."""

@@ -1,4 +1,3 @@
-import random
 import warnings
 from itertools import combinations, product, islice, chain
 from math import log, ceil
@@ -9,7 +8,7 @@ import pandas as pd
 from pandas import DataFrame, merge
 from scipy.optimize import fsolve
 
-from DataSynthesizer.lib.utils import mutual_information, normalize_given_distribution, set_random_seed
+from DataSynthesizer.lib.utils import mutual_information, normalize_given_distribution
 
 """
 This module is based on PrivBayes in the following paper:
@@ -120,7 +119,7 @@ def worker(paras):
     return parents_pair_list, mutual_info_list
 
 
-def greedy_bayes(dataset: DataFrame, k: int, epsilon: float, seed=0):
+def greedy_bayes(dataset: DataFrame, k: int, epsilon: float, seed=None, rng=None):
     """Construct a Bayesian Network (BN) using greedy algorithm.
 
     Parameters
@@ -131,10 +130,14 @@ def greedy_bayes(dataset: DataFrame, k: int, epsilon: float, seed=0):
         Maximum degree of the constructed BN. If k=0, k is automatically calculated.
     epsilon : float
         Parameter of differential privacy.
-    seed : int or float
-        Seed for the randomness in BN generation.
+    seed : int
+        Seed for the randomness in BN generation. Defaults to None (fresh entropy).
+    rng : numpy.random.Generator
+        Generator to draw randomness from; takes precedence over seed.
     """
-    set_random_seed(seed)
+    # all randomness comes from this generator now, not the global np.random state
+    if rng is None:
+        rng = np.random.default_rng(seed)
     dataset: DataFrame = dataset.astype(str, copy=False)
     num_tuples, num_attributes = dataset.shape
     if not k:
@@ -143,7 +146,7 @@ def greedy_bayes(dataset: DataFrame, k: int, epsilon: float, seed=0):
     attr_to_is_binary = {attr: dataset[attr].unique().size <= 2 for attr in dataset}
 
     print('================ Constructing Bayesian Network (BN) ================')
-    root_attribute = random.choice(dataset.columns)
+    root_attribute = rng.choice(dataset.columns)
     V = [root_attribute]
     rest_attributes = list(dataset.columns)
     rest_attributes.remove(root_attribute)
@@ -166,7 +169,7 @@ def greedy_bayes(dataset: DataFrame, k: int, epsilon: float, seed=0):
         if epsilon:
             sampling_distribution = exponential_mechanism(epsilon, mutual_info_list, parents_pair_list, attr_to_is_binary,
                                                           num_tuples, num_attributes)
-            idx = np.random.choice(list(range(len(mutual_info_list))), p=sampling_distribution)
+            idx = rng.choice(list(range(len(mutual_info_list))), p=sampling_distribution)
         else:
             idx = mutual_info_list.index(max(mutual_info_list))
 
@@ -203,7 +206,9 @@ def laplace_noise_parameter(k, num_attributes, num_tuples, epsilon):
     return (num_attributes - k) / epsilon
 
 
-def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.1):
+def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.1, rng=None):
+    if rng is None:
+        rng = np.random.default_rng()
     data = encoded_dataset.copy().loc[:, attributes]
     data['count'] = 1
     stats = data.groupby(attributes).sum()
@@ -236,15 +241,17 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
         k = len(attributes) - 1
         num_tuples, num_attributes = encoded_dataset.shape
         noise_para = laplace_noise_parameter(k, num_attributes, num_tuples, epsilon)
-        laplace_noises = np.random.laplace(0, scale=noise_para, size=stats.index.size)
+        laplace_noises = rng.laplace(0, scale=noise_para, size=stats.index.size)
         stats['count'] += laplace_noises
         stats.loc[stats['count'] < 0, 'count'] = 0
 
     return stats
 
 
-def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset, epsilon=0.1):
+def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset, epsilon=0.1, rng=None):
     """See more in Algorithm 1 in PrivBayes."""
+    if rng is None:
+        rng = np.random.default_rng()
 
     k = len(bayesian_network[-1][1])
     conditional_distributions = {}
@@ -255,7 +262,8 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
     for child, _ in bayesian_network[:k]:
         kplus1_attributes.append(child)
 
-    noisy_dist_of_kplus1_attributes = get_noisy_distribution_of_attributes(kplus1_attributes, encoded_dataset, epsilon)
+    noisy_dist_of_kplus1_attributes = get_noisy_distribution_of_attributes(kplus1_attributes, encoded_dataset, epsilon,
+                                                                           rng=rng)
 
     # generate noisy distribution of root attribute.
     root_stats = noisy_dist_of_kplus1_attributes.loc[:, [root, 'count']].groupby(root).sum()['count']
@@ -270,7 +278,7 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
         elif idx == k - 1:
             stats = noisy_dist_of_kplus1_attributes.loc[:, parents + [child, 'count']]
         else:
-            stats = get_noisy_distribution_of_attributes(parents + [child], encoded_dataset, epsilon)
+            stats = get_noisy_distribution_of_attributes(parents + [child], encoded_dataset, epsilon, rng=rng)
             stats = stats.loc[:, parents + [child, 'count']]
 
         parents_grouper = parents[0] if len(parents) == 1 else parents

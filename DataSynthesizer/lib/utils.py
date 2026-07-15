@@ -1,5 +1,6 @@
 import json
 import random
+import secrets
 from string import ascii_lowercase
 
 import numpy as np
@@ -7,7 +8,10 @@ from pandas import Series, DataFrame
 from sklearn.metrics import mutual_info_score, normalized_mutual_info_score
 
 
-def set_random_seed(seed=0):
+def set_random_seed(seed=None):
+    # no seed given yet (np.random.seed needs < 2**32)
+    if seed is None:
+        seed = secrets.randbits(32)
     random.seed(seed)
     np.random.seed(seed)
 
