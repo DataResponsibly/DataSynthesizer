@@ -14,7 +14,7 @@ class DataGenerator(object):
         self.description = {}
         self.encoded_dataset = None
 
-    def generate_dataset_in_random_mode(self, n, description_file, seed=0, minimum=0, maximum=100):
+    def generate_dataset_in_random_mode(self, n, description_file, seed=None, minimum=0, maximum=100):
         set_random_seed(seed)
         description = read_json_file(description_file)
 
@@ -38,7 +38,7 @@ class DataGenerator(object):
                 else:
                     self.synthetic_dataset[attr] = random.uniform(minimum, maximum, n)
 
-    def generate_dataset_in_independent_mode(self, n, description_file, seed=0):
+    def generate_dataset_in_independent_mode(self, n, description_file, seed=None):
         set_random_seed(seed)
         self.description = read_json_file(description_file)
 
@@ -55,7 +55,7 @@ class DataGenerator(object):
                 binning_indices = column.sample_binning_indices_in_independent_attribute_mode(n)
                 self.synthetic_dataset[attr] = column.sample_values_from_binning_indices(binning_indices)
 
-    def generate_dataset_in_correlated_attribute_mode(self, n, description_file, seed=0):
+    def generate_dataset_in_correlated_attribute_mode(self, n, description_file, seed=None):
         set_random_seed(seed)
         self.n = n
         self.description = read_json_file(description_file)
