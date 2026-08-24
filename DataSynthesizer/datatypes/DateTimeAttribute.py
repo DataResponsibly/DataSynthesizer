@@ -2,8 +2,12 @@ from bisect import bisect_right
 from typing import Union
 
 import numpy as np
+import pandas as pd
 from dateutil.parser import parse
 from pandas import Series, concat
+from packaging.version import Version
+
+PANDAS_VERSION = Version(pd.__version__)
 
 from DataSynthesizer.datatypes.AbstractAttribute import AbstractAttribute
 from DataSynthesizer.datatypes.utils.DataType import DataType
@@ -75,7 +79,10 @@ class DateTimeAttribute(AbstractAttribute):
             encoded = concat([encoded, self.data], axis=1).iloc[:, 0]
 
         encoded.fillna(len(self.distribution_bins), inplace=True)
-        return encoded.astype(int, copy=False)
+        if PANDAS_VERSION < Version("3.0"):
+            return encoded.astype(int, copy=False)
+        else:
+            return encoded.astype(int)
 
     def generate_values_as_candidate_key(self, n):
         return np.arange(self.min, self.max, (self.min - self.max) / n)
